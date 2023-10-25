@@ -1,0 +1,5 @@
+art
+loguru
+requests
+websockets
+configparser

@@ -1,10 +1,8 @@
 import json
 from loguru import logger
 import random
-import traceback
 from typing import Union
 
-import aiohttp
 import requests
 
 from globals.globals import GlobalVal
@@ -41,6 +39,17 @@ class APIIirose:
         return {"code": 200}
 
     @staticmethod
+    async def send_msg_to_danmu(msg: str, color: int = 0):
+        """
+        发送消息到私聊~{"t":"[https://xc.null.red:8043/XCimg/img/save/E4A1F509115D8BE947EA7CAA0395E1CA-2067967008.jpg#e]","c":"236614","v":0}
+        :param msg:  要发送的消息
+        :param color:  要发送消息的背景色
+        :return:
+        """
+        await GlobalVal.websocket.send('~' + json.dumps({"t": msg, "c": color}))
+        return {"code": 200}
+
+    @staticmethod
     async def send_msg(data, msg: str, color: int = 0):
         """
         自动选择发送到的位置
@@ -53,6 +62,8 @@ class APIIirose:
             await APIIirose.send_msg_to_room(msg, color)
         elif data.type == MessageType.private_chat:
             await APIIirose.send_msg_to_private(msg, data.user_id, color)
+        elif data.type == MessageType.danmu:
+            await APIIirose.send_msg_to_danmu(msg, color)
         else:
             return {"code": 404, "error": "未知的类型"}
         return {"code": 200}
