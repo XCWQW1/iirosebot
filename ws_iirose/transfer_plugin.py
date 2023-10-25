@@ -32,11 +32,11 @@ async def process_message(data, websocket, plugin_list):
     split_list = data.split("<")
     if len(split_list) <= 1:
         for i in split_list:
-            if not i[:2] == "%*":
+            if not i[:1] == "%":
                 msg_list.append(i)
     else:
         start_symbol_text = None
-        if not data[:2] == "%*":
+        if not data[:1] == "%":
             for s_list in split_list:
                 symbols_bool, symbols_string = check_start_symbols(s_list)
                 if symbols_bool:
