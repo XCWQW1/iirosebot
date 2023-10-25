@@ -43,7 +43,7 @@
   按配置文件中的注释配置每个参数，配置文件中的密码不需要md5格式
   
 - ### 6, 编写插件 （可选）
-	>示例的插件 iirose_example.py
+	>示例的插件 iirose_example.py iirose_flow_master.py
 
 - ### 7, 启动
   >第一次运行会停止1次要求重启，用于初始化配置文件等
