@@ -34,5 +34,11 @@ async def user_leave_room(Message):
     pass
 
 
+async def revoke_message(Message):
+    # 有撤回消息时会触发这个函数（不排除自身
+    # Message里面只有user_id和message_id
+    pass
+
+
 async def on_init():
     logger.info('框架会在收到机器人加入房间的消息后执行这个函数，只会执行一次')  # 本框架使用logger日志管理器

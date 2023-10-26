@@ -150,3 +150,8 @@ class APIIirose:
     async def stop_media():
         await GlobalVal.websocket.send('{0' + json.dumps({"m": "cut", "mc": "0", "i": str(random.random())[2:14]}))
         return {"code": 200}
+
+    @staticmethod
+    async def revoke_message(message_id: str):
+        await GlobalVal.websocket.send(f'v0#{message_id}')
+        return {"code": 200}
