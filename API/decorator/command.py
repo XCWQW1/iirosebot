@@ -12,6 +12,7 @@ class MessageType(Enum):
     move_room = 3
     join_room = 4
     leave_room = 5
+    revoke_message = 5
 
 
 def on_command(command: str, substring: list[bool, int] or bool, command_type: list = [MessageType.room_chat]):

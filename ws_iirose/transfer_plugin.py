@@ -160,6 +160,19 @@ async def process_message(data, websocket, plugin_list):
 
                 logger.info(f'[弹幕] {Message.user_name}({Message.user_id}):{Message.message}')
 
+            elif data[:3] == 'v0#':
+                # 撤回消息
+                msg = data.split("#")[1].split("_")
+
+                class Message:
+                    type = MessageType.revoke_message
+                    user_id = msg[0]
+                    message_id = msg[1]
+
+                logger.info(f'[事件|撤回] 用户 {Message.user_id} 撤回了 {Message.message_id}')
+                await plugin_transfer('revoke_message', plugin_list, Message)
+                continue
+
             try:
                 if Message:
                     pass
