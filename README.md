@@ -87,7 +87,7 @@
   
   - #### 框架外部调用
     - [ ] http api
-    - [ ] http post
+    - [ ] webhook
     - [ ] 正向ws
     - [ ] 反向ws
 </details>
