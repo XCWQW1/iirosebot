@@ -9,12 +9,9 @@ from plugin_system.plugin_transfer import plugin_transfer
 
 on_init = False
 
-c_plugin_list = None
-
 
 async def login_to_server(websocket, plugin_list):
-    global c_plugin_list
-    c_plugin_list = plugin_list
+    GlobalVal.plugin_list = plugin_list
     bot_name, room_id, bot_password = load_config()
     logger.info('开始登陆')
     # 登陆
@@ -42,9 +39,8 @@ async def login_to_server(websocket, plugin_list):
 
 async def init_plugin():
     global on_init
-    global c_plugin_list
     if not on_init:
         logger.info('执行插件初始化')
-        await plugin_transfer('on_init', c_plugin_list)
+        await plugin_transfer('on_init')
         on_init = True
     logger.info('高性能ですから')

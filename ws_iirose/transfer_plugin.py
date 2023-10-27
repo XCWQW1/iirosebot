@@ -89,7 +89,7 @@ async def process_message(data, websocket, plugin_list):
                                 is_bot = True if msg[9][:2] == "4'" else False
 
                             logger.info(f'[事件|移动到其他房间] {Message.user_name}({Message.user_id}) => {Message.to_room_id}')
-                            await plugin_transfer('user_move_room', plugin_list, Message)
+                            await plugin_transfer('user_move_room', Message)
                             continue
 
                         elif msg[3] == "'1":
@@ -108,7 +108,7 @@ async def process_message(data, websocket, plugin_list):
                             if Message.user_name == bot_name:
                                 from ws_iirose.login_bot import init_plugin
                                 await init_plugin()
-                            await plugin_transfer('user_join_room', plugin_list, Message)
+                            await plugin_transfer('user_join_room', Message)
                             continue
 
                         elif msg[3] == "'3":
@@ -123,7 +123,7 @@ async def process_message(data, websocket, plugin_list):
                                 is_bot = True if msg[9][:2] == "4'" else False
 
                             logger.info(f'[事件|用户离开房间] {Message.user_name}({Message.user_id})')
-                            await plugin_transfer('user_leave_room', plugin_list, Message)
+                            await plugin_transfer('user_leave_room', Message)
                             continue
 
                 elif msg_type == 2:
@@ -170,7 +170,7 @@ async def process_message(data, websocket, plugin_list):
                     message_id = msg[1]
 
                 logger.info(f'[事件|撤回] 用户 {Message.user_id} 撤回了 {Message.message_id}')
-                await plugin_transfer('revoke_message', plugin_list, Message)
+                await plugin_transfer('revoke_message', Message)
                 continue
 
             try:
@@ -194,9 +194,7 @@ async def process_message(data, websocket, plugin_list):
                                                          :function_records[func][com_list]['substring_num']] == str(function_records[func][com_list]['command']):
                                     try:
                                         if Message.type in function_records[func][com_list]['command_type']:
-                                            task = asyncio.create_task(
-                                                plugin_list_remake[func]['def'][
-                                                    function_records[func][com_list]['func_name']](Message, Message.message.split(function_records[func][com_list]['command'])[1]))
+                                            await plugin_transfer(plugin_list_remake[func]['def'][function_records[func][com_list]['func_name']], (Message, Message.message.split(function_records[func][com_list]['command'])[1]), True)
                                     except:
                                         logger.error(
                                             f'调用已注册 {function_records[func][com_list]["command"]} 指令报错：{traceback.format_exc()}')
@@ -204,9 +202,7 @@ async def process_message(data, websocket, plugin_list):
                                 if Message.message == str(function_records[func][com_list]['command']):
                                     try:
                                         if Message.type in function_records[func][com_list]['command_type']:
-                                            task = asyncio.create_task(
-                                                plugin_list_remake[func]['def'][
-                                                    function_records[func][com_list]['func_name']](Message))
+                                            await plugin_transfer(plugin_list_remake[func]['def'][function_records[func][com_list]['func_name']], Message, True)
                                     except:
                                         logger.error(
                                             f'调用已注册 {function_records[func][com_list]["command"]} 指令报错：{traceback.format_exc()}')
