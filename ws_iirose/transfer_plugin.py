@@ -72,7 +72,7 @@ async def process_message(data, websocket, plugin_list):
                             message_background_color = msg[5]
                             is_bot = True if msg[9][:2] == "4'" else False
 
-                        logger.info(f'[房间] {Message.user_name}({Message.user_id}):{Message.message}({Message.message_id})')
+                        logger.info(f'[消息|房间] {Message.user_name}({Message.user_id}): {Message.message} ({Message.message_id})')
 
                     elif len(msg) == 12:
                         # 事件类
@@ -89,7 +89,7 @@ async def process_message(data, websocket, plugin_list):
                                 is_bot = True if msg[9][:2] == "4'" else False
 
                             logger.info(f'[事件|移动到其他房间] {Message.user_name}({Message.user_id}) => {Message.to_room_id}')
-                            await plugin_transfer('user_move_room', plugin_list, Message)
+                            await plugin_transfer('user_move_room', Message)
                             continue
 
                         elif msg[3] == "'1":
@@ -108,7 +108,7 @@ async def process_message(data, websocket, plugin_list):
                             if Message.user_name == bot_name:
                                 from ws_iirose.login_bot import init_plugin
                                 await init_plugin()
-                            await plugin_transfer('user_join_room', plugin_list, Message)
+                            await plugin_transfer('user_join_room', Message)
                             continue
 
                         elif msg[3] == "'3":
@@ -123,7 +123,7 @@ async def process_message(data, websocket, plugin_list):
                                 is_bot = True if msg[9][:2] == "4'" else False
 
                             logger.info(f'[事件|用户离开房间] {Message.user_name}({Message.user_id})')
-                            await plugin_transfer('user_leave_room', plugin_list, Message)
+                            await plugin_transfer('user_leave_room', Message)
                             continue
 
                 elif msg_type == 2:
@@ -140,7 +140,7 @@ async def process_message(data, websocket, plugin_list):
                         message_background_color = msg[6]
                         is_bot = True if msg[9][:2] == "4'" else False
 
-                    logger.info(f'[私聊] {Message.user_name}({Message.user_id}):{Message.message}({Message.message_id})')
+                    logger.info(f'[消息|私聊] {Message.user_name}({Message.user_id}): {Message.message} ({Message.message_id})')
 
             elif data[:1] == '=':
                 msg_type = data.count('=', 0, len(data))
@@ -158,7 +158,7 @@ async def process_message(data, websocket, plugin_list):
                     message_background_color = msg[3]
                     is_bot = True if msg[9][:2] == "4'" else False
 
-                logger.info(f'[弹幕] {Message.user_name}({Message.user_id}):{Message.message}')
+                logger.info(f'[消息|弹幕] {Message.user_name}({Message.user_id}): {Message.message}')
 
             elif data[:3] == 'v0#':
                 # 撤回消息
@@ -170,8 +170,49 @@ async def process_message(data, websocket, plugin_list):
                     message_id = msg[1]
 
                 logger.info(f'[事件|撤回] 用户 {Message.user_id} 撤回了 {Message.message_id}')
-                await plugin_transfer('revoke_message', plugin_list, Message)
+                await plugin_transfer('revoke_message', Message)
                 continue
+
+            elif data[:2] == '&1':
+                msg = data.split(">")
+
+                def iirose_url_parse(iirose_url):
+                    if iirose_url[2:6] == 's://':
+                        iirose_media_url = 'http' + iirose_url[2:]
+                    elif iirose_url[2:5] == '://':
+                        iirose_media_url = 'http' + iirose_url[2:]
+                    else:
+                        iirose_media_url = iirose_url[2:]
+                    return iirose_media_url
+
+                if msg[5] == '2':
+                    # video
+                    class Message:
+                        type = MessageType.media_video
+                        play_user = msg[4]
+                        media_name = msg[2][:-2]
+                        media_auther = msg[3]
+                        media_url = iirose_url_parse(msg[0])
+                        media_pic_url = iirose_url_parse(msg[6])
+                        media_time = msg[1]
+
+                    logger.info(f'[事件|媒体|视频] 由 {Message.play_user} 播放来自 {Message.media_auther} 的 {Message.media_name}，地址是{Message.media_url}')
+                    await plugin_transfer('media_video_message', Message)
+                    continue
+                if msg[5] == '1':
+                    # music
+                    class Message:
+                        type = MessageType.media_music
+                        play_user = msg[4]
+                        media_name = msg[2]
+                        media_auther = msg[3][2:]
+                        media_url = iirose_url_parse(msg[0])
+                        media_pic_url = iirose_url_parse(msg[6])
+                        media_time = msg[1]
+
+                    logger.info(f'[事件|媒体|音频] 由 {Message.play_user} 播放来自 {Message.media_auther} 的 {Message.media_name}，地址是 {Message.media_url}')
+                    await plugin_transfer('media_music_message', Message)
+                    continue
 
             try:
                 if Message:
@@ -194,9 +235,7 @@ async def process_message(data, websocket, plugin_list):
                                                          :function_records[func][com_list]['substring_num']] == str(function_records[func][com_list]['command']):
                                     try:
                                         if Message.type in function_records[func][com_list]['command_type']:
-                                            task = asyncio.create_task(
-                                                plugin_list_remake[func]['def'][
-                                                    function_records[func][com_list]['func_name']](Message, Message.message.split(function_records[func][com_list]['command'])[1]))
+                                            await plugin_transfer(plugin_list_remake[func]['def'][function_records[func][com_list]['func_name']], (Message, Message.message.split(function_records[func][com_list]['command'])[1]), True)
                                     except:
                                         logger.error(
                                             f'调用已注册 {function_records[func][com_list]["command"]} 指令报错：{traceback.format_exc()}')
@@ -204,9 +243,7 @@ async def process_message(data, websocket, plugin_list):
                                 if Message.message == str(function_records[func][com_list]['command']):
                                     try:
                                         if Message.type in function_records[func][com_list]['command_type']:
-                                            task = asyncio.create_task(
-                                                plugin_list_remake[func]['def'][
-                                                    function_records[func][com_list]['func_name']](Message))
+                                            await plugin_transfer(plugin_list_remake[func]['def'][function_records[func][com_list]['func_name']], Message, True)
                                     except:
                                         logger.error(
                                             f'调用已注册 {function_records[func][com_list]["command"]} 指令报错：{traceback.format_exc()}')

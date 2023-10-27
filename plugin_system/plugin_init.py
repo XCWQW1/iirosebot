@@ -7,7 +7,8 @@ import importlib.util
 import traceback
 
 from loguru import logger
-from .plugin_transfer import plugins_date
+
+plugin_data_list = {}
 
 
 async def find_plugin():
@@ -16,7 +17,35 @@ async def find_plugin():
     return plugin_files
 
 
-async def get_functions_from_file(file_path):
+async def plugins_date(plugin_dict):
+    logger.info('正在获取插件元数据')
+    for plugin_key, plugin_date in plugin_dict.items():
+        plugin_name = plugin_date['name']
+        plugin_file_path = plugin_date['file_path']
+        try:
+            spec = importlib.util.spec_from_file_location('', plugin_file_path)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+        except:
+            logger.error(f'获取插件 {plugin_file_path} 元数据报错：{traceback.format_exc()}')
+            continue
+
+        if hasattr(module, 'PLUGIN_DATE'):
+            PLUGIN_DATE = getattr(module, 'PLUGIN_DATE')
+        else:
+            PLUGIN_DATE = {
+                'name': plugin_name,
+                "author": None,
+                'version': None,
+                "description": None,
+                "dependencies": {}
+            }
+        plugin_data_list[plugin_name] = PLUGIN_DATE
+    logger.info(f'共成功获取到 {len(plugin_data_list)} 个插件的元数据')
+    return plugin_data_list
+
+
+async def get_functions_from_file(file_path, plugin_name):
     try:
         module_name = inspect.getmodulename(file_path)
         spec = importlib.util.spec_from_file_location(module_name, file_path)
@@ -34,6 +63,19 @@ async def get_functions_from_file(file_path):
                     functions[name] = obj
             except:
                 pass
+
+        if hasattr(module, 'PLUGIN_DATE'):
+            PLUGIN_DATE = getattr(module, 'PLUGIN_DATE')
+        else:
+            PLUGIN_DATE = {
+                'name': plugin_name,
+                "author": None,
+                'version': None,
+                "description": None,
+                "dependencies": {}
+            }
+        plugin_data_list[plugin_name] = PLUGIN_DATE
+
     except Exception as e:
         logger.error(f'记录插件 {file_path} 中的函数出错：{traceback.format_exc()}')
         functions = None
@@ -41,7 +83,7 @@ async def get_functions_from_file(file_path):
     return functions
 
 
-async def get_plugins_functions_and_def():
+async def find_plugins_functions():
     logger.info('开始寻找插件！')
     plugin_num = 0
     plugin_dnf_list = {}
@@ -52,9 +94,8 @@ async def get_plugins_functions_and_def():
         else:
             name = file_path.split('plugins/')[1].replace('.py', '')
         logger.info(f'找到插件：{name}')
-        def_ls = await get_functions_from_file(file_path)
+        def_ls = await get_functions_from_file(file_path, name)
         plugin_dnf_list[plugin_num] = {'name': name, 'file_path': file_path, 'def': def_ls}
         plugin_num = plugin_num + 1
-    logger.info(f'寻找完毕，共计 {plugin_num} 个插件')
-    await plugins_date(plugin_dnf_list)
+    logger.info(f'寻找完毕，共计 {plugin_num} 个插件以及 {len(plugin_data_list)} 条插件信息')
     return plugin_dnf_list

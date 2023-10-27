@@ -1,4 +1,6 @@
 import json
+import subprocess
+
 from loguru import logger
 import random
 from typing import Union
@@ -121,29 +123,55 @@ class APIIirose:
         return {"code": 200}
 
     @staticmethod
-    async def play_media(media_type: bool):
+    async def play_media(data, media_type: bool, media_url: str):
+        """
+        播放媒体，需要依赖ffmpeg获取视频长度
+        :param data:  函数的第一个输入参数
+        :param media_type:  媒体类型 True 为音频 False 为视频
+        :param media_url:  媒体外链
+        :return:
+        """
         if media_type:
             # music
             media_type = 0
         else:
             # video
             media_type = 1
+
+        try:
+            command = ['ffprobe', '-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', media_url]
+            result = subprocess.run(command, capture_output=True, text=True)
+            output = result.stdout
+            media_data = json.loads(output)
+            duration = float(media_data['format']['duration'])
+        except:
+            return {"code": 403, "error": "无法访问到媒体"}
+
         card_json = {
             "m": f"m__4={media_type}"
-                 f">>XCWQW233"
+                 f">>{data.user_name}"
                  f">https://static.codemao.cn/rose/v0/images/system/demandAlbumLarge.png",
             "mc": "0",
             "i": str(random.random())[2:14]
         }
 
+        if media_url[:5] == "https":
+            media_url = media_url[4:]
+        elif media_url[:5] == "http:":
+            media_url = media_url[4:]
+
         media_json = {
-            "s": "",
-            "d": 1420.16,
+            "s": media_url,
+            "d": duration,
             "c": "s://static.codemao.cn/rose/v0/images/system/demandAlbumLarge.png",
-            "n": "",
-            "r": "XCWQW233",
-            "b": "=1"
+            "n": "媒体",
+            "r": data.user_name,
+            "b": f"={media_type}"
         }
+
+        await GlobalVal.websocket.send(json.dumps(card_json))
+        await GlobalVal.websocket.send('&1' + json.dumps(media_json))
+
         return {"code": 200}
 
     @staticmethod

@@ -7,7 +7,7 @@ import sys
 from log.main import log
 from init.main_init import main_init
 from ws_iirose.ws import connect_to_iirose_server
-from plugin_system.plugin_init import get_plugins_functions_and_def
+from plugin_system.plugin_init import find_plugins_functions
 
 
 def signal_handler(sig, frame):
@@ -22,5 +22,5 @@ signal.signal(signal.SIGINT, signal_handler)
 if __name__ == '__main__':
     log('INFO')
     asyncio.run(main_init())
-    plugin_list = asyncio.run(get_plugins_functions_and_def())
+    plugin_list = asyncio.run(find_plugins_functions())
     asyncio.run(connect_to_iirose_server(plugin_list))
