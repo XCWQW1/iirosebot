@@ -2,7 +2,7 @@
   
 # iirosebot
 
-一个萌新写的异步垃圾[iirose](https://iirose.com)机器人框架
+一个适用于[iirose](https://iirose.com)python异步的机器人框架
 
 </div>
 
@@ -11,8 +11,6 @@
     <img src="https://img.shields.io/static/v1?label=python&message=3.11.4&color=blue" alt="python">
   </a>
 </P>
-  
-一个python萌新写的[iirose](https://iirose.com)机器人屎山框架
 
 > 用户使用本框架做出任何行为作者不可控，产生的后果框架作者概不负责，包括但不限于使用本框架时机器人账户封号等
 
