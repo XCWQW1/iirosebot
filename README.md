@@ -2,7 +2,7 @@
   
 # iirosebot
 
-一个适用于[iirose](https://iirose.com)python异步的机器人框架
+一个适用于 [iirose](https://iirose.com) 的python异步机器人框架
 
 </div>
 
@@ -54,9 +54,9 @@
 
 有什么bug或者建议可以提Issues或者进入房间后联系作者
 
-作者唯一标识：6533DF3D933BF
+作者唯一标识：[XCWQW233(6533DF3D933BF)](https://iirose.com/#s=6533df3d933bf&act=i:6533df3d933bf)
 
-活跃房间：63a882551d807
+活跃房间：[縁夢の地(63a882551d807)](https://iirose.com/#s=6533df3d933bf&r=63a882551d807)
 
 <details>
 <summary>TODO：</summary>
