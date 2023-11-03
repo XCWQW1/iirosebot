@@ -73,6 +73,7 @@ async def process_message(data, websocket, plugin_list):
                             is_bot = True if msg[9][:2] == "4'" else False
 
                         logger.info(f'[消息|房间] {Message.user_name}({Message.user_id}): {Message.message} ({Message.message_id})')
+                        await plugin_transfer('room_message', Message)
 
                     elif len(msg) == 12:
                         # 事件类
@@ -141,6 +142,7 @@ async def process_message(data, websocket, plugin_list):
                         is_bot = True if msg[9][:2] == "4'" else False
 
                     logger.info(f'[消息|私聊] {Message.user_name}({Message.user_id}): {Message.message} ({Message.message_id})')
+                    await plugin_transfer('private_message', Message)
 
             elif data[:1] == '=':
                 msg_type = data.count('=', 0, len(data))
@@ -159,6 +161,7 @@ async def process_message(data, websocket, plugin_list):
                     is_bot = True if msg[9][:2] == "4'" else False
 
                 logger.info(f'[消息|弹幕] {Message.user_name}({Message.user_id}): {Message.message}')
+                await plugin_transfer('danmu_message', Message)
 
             elif data[:3] == 'v0#':
                 # 撤回消息
