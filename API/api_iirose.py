@@ -60,7 +60,7 @@ class APIIirose:
         :param color:  要发送消息的背景色
         :return:
         """
-        if data.type == MessageType.room_chat or MessageType.join_room or MessageType.leave_room:
+        if data.type in [MessageType.room_chat, MessageType.join_room, MessageType.leave_room]:
             await APIIirose.send_msg_to_room(msg, color)
         elif data.type == MessageType.private_chat:
             await APIIirose.send_msg_to_private(msg, data.user_id, color)
@@ -123,10 +123,15 @@ class APIIirose:
         return {"code": 200}
 
     @staticmethod
-    async def play_media(data, media_type: bool, media_url: str):
+    async def play_media(media_type: bool, media_url: str, netease: bool = False, music_name: str = '未知', music_auther: str = '未知', music_lrc: str = '未知', music_pic: str = 'https://static.codemao.cn/rose/v0/images/system/demandAlbumLarge.png', music_netease_song_id: str = ''):
         """
-        播放媒体，需要依赖ffmpeg获取视频长度
-        :param data:  函数的第一个输入参数
+        播放媒体，需要依赖ffmpeg获取视频长度，为网易云音乐时可以通过music开头的几个变量自定义内容
+        :param netease: 开启后可以使用music开头的变量
+        :param music_netease_song_id: 网易云歌曲id
+        :param music_pic: 音乐封面
+        :param music_lrc: 音乐歌词
+        :param music_auther: 音乐作者
+        :param music_name: 音乐名称
         :param media_type:  媒体类型 True 为音频 False 为视频
         :param media_url:  媒体外链
         :return:
@@ -146,28 +151,53 @@ class APIIirose:
             duration = float(media_data['format']['duration'])
         except:
             return {"code": 403, "error": "无法访问到媒体"}
-
-        card_json = {
-            "m": f"m__4={media_type}"
-                 f">>{data.user_name}"
-                 f">https://static.codemao.cn/rose/v0/images/system/demandAlbumLarge.png",
-            "mc": "0",
-            "i": str(random.random())[2:14]
-        }
+        if netease:
+            card_json = {
+                "m": f"m__4@0"
+                     f">{music_name}>{music_auther}"
+                     f">{music_pic}"
+                     f">0c0a15>128",
+                "mc": "0",
+                "i": str(random.random())[2:14]
+            }
+        else:
+            card_json = {
+                "m": f"m__4={media_type}"
+                     f">>{music_auther}"
+                     f">https://static.codemao.cn/rose/v0/images/system/demandAlbumLarge.png",
+                "mc": "0",
+                "i": str(random.random())[2:14]
+            }
 
         if media_url[:5] == "https":
             media_url = media_url[4:]
         elif media_url[:5] == "http:":
             media_url = media_url[4:]
 
-        media_json = {
-            "s": media_url,
-            "d": duration,
-            "c": "s://static.codemao.cn/rose/v0/images/system/demandAlbumLarge.png",
-            "n": "媒体",
-            "r": data.user_name,
-            "b": f"={media_type}"
-        }
+        if netease:
+            if music_pic[:5] == "https":
+                music_pic = music_pic[4:]
+            elif music_pic[:5] == "http:":
+                music_pic = music_pic[4:]
+            media_json = {
+                "s": media_url,
+                "d": duration,
+                "c": music_pic,
+                "n": music_name,
+                "r": music_auther,
+                "b": "@0",
+                "o": f's://music.163.com/#/song?id={music_netease_song_id}',
+                "l": music_lrc
+            }
+        else:
+            media_json = {
+                "s": media_url,
+                "d": duration,
+                "c": music_pic,
+                "n": music_name,
+                "r": music_auther,
+                "b": f"={media_type}"
+            }
 
         await GlobalVal.websocket.send(json.dumps(card_json))
         await GlobalVal.websocket.send('&1' + json.dumps(media_json))
