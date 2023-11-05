@@ -60,7 +60,7 @@ class APIIirose:
         :param color:  要发送消息的背景色
         :return:
         """
-        if data.type == MessageType.room_chat or MessageType.join_room or MessageType.leave_room:
+        if data.type in [MessageType.room_chat, MessageType.join_room, MessageType.leave_room]:
             await APIIirose.send_msg_to_room(msg, color)
         elif data.type == MessageType.private_chat:
             await APIIirose.send_msg_to_private(msg, data.user_id, color)
