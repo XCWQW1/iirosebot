@@ -29,7 +29,11 @@ async def plugin_transfer_thread(function_name, data=None, one_func=False):
                     if function_name in plugin_def:
                         try:
                             if data is not None:
-                                task = asyncio.create_task(plugin_def[function_name](data))
+                                try:
+                                    len(data)
+                                    task = asyncio.create_task(plugin_def[function_name](*data))
+                                except:
+                                    task = asyncio.create_task(plugin_def[function_name](data))
                             else:
                                 task = asyncio.create_task(plugin_def[function_name]())
 

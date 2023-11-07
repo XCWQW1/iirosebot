@@ -50,8 +50,16 @@ async def process_message(data, websocket, plugin_list):
 
     for data in reversed(msg_list):
         if data == 'm':
+            logger.info(f'[WS] 切换房间')
             await websocket.close()
+            return
         else:
+            if data == ',':
+                # 切媒体
+                logger.info(f'[事件|媒体] 切媒体')
+                await plugin_transfer('media_cut')
+                return
+
             if data[:1] == '"':
                 msg_type = data.count('"', 0, len(data))
                 msg = data.split(">")
@@ -71,6 +79,18 @@ async def process_message(data, websocket, plugin_list):
                             message_color = msg[4]
                             message_background_color = msg[5]
                             is_bot = True if msg[9][:2] == "4'" else False
+
+                        if Message.message[:4] == 'm__4':
+                            msg = Message.message.split('>')
+
+                            class Media:
+                                media_name = msg[1]
+                                media_auther = msg[2]
+                                media_pic = msg[3]
+
+                            logger.info(f'[事件|媒体|点播] {Message.user_name} 点播来自 {Media.media_auther} 的 {Media.media_name}')
+                            await plugin_transfer('play_media', (Message, Media))
+                            return
 
                         logger.info(f'[消息|房间] {Message.user_name}({Message.user_id}): {Message.message} ({Message.message_id})')
                         await plugin_transfer('room_message', Message)
@@ -201,7 +221,9 @@ async def process_message(data, websocket, plugin_list):
 
                     logger.info(f'[事件|媒体|视频] 由 {Message.play_user} 播放来自 {Message.media_auther} 的 {Message.media_name}，地址是{Message.media_url}')
                     await plugin_transfer('media_video_message', Message)
+                    await plugin_transfer('media_message', Message)
                     continue
+
                 if msg[5] == '1':
                     # music
                     class Message:
@@ -215,6 +237,7 @@ async def process_message(data, websocket, plugin_list):
 
                     logger.info(f'[事件|媒体|音频] 由 {Message.play_user} 播放来自 {Message.media_auther} 的 {Message.media_name}，地址是 {Message.media_url}')
                     await plugin_transfer('media_music_message', Message)
+                    await plugin_transfer('media_message', Message)
                     continue
 
             try:
@@ -238,7 +261,10 @@ async def process_message(data, websocket, plugin_list):
                                                          :function_records[func][com_list]['substring_num']] == str(function_records[func][com_list]['command']):
                                     try:
                                         if Message.type in function_records[func][com_list]['command_type']:
-                                            await plugin_transfer(plugin_list_remake[func]['def'][function_records[func][com_list]['func_name']], (Message, Message.message.split(function_records[func][com_list]['command'])[1]), True)
+                                            await plugin_transfer(
+                                                plugin_list_remake[func]['def'][function_records[func][com_list]['func_name']], (Message, Message.message.split(function_records[func][com_list]['command'])[1]),
+                                                True
+                                            )
                                     except:
                                         logger.error(
                                             f'调用已注册 {function_records[func][com_list]["command"]} 指令报错：{traceback.format_exc()}')
