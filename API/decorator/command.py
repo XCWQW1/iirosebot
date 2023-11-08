@@ -34,8 +34,10 @@ def on_command(command: str, substring: list[bool, int] or bool, command_type: l
             substring_num = substring[1]
         plugins_file = os.getcwd() + '/plugins/'
         file_name = inspect.getfile(func).replace(plugins_file, '').replace('.py', '')
+
         if '\\' in file_name:
             file_name = file_name.split('\\')[-1]
+
         record = {
             'command': command,
             'func_name': func.__name__,
