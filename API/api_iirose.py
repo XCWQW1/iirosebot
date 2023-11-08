@@ -202,7 +202,7 @@ class APIIirose:
         await GlobalVal.websocket.send(json.dumps(card_json))
         await GlobalVal.websocket.send('&1' + json.dumps(media_json))
 
-        return {"code": 200}
+        return {"code": 200, 'duration': duration}
 
     @staticmethod
     async def stop_media():
