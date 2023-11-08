@@ -6,7 +6,6 @@ import traceback
 from loguru import logger
 from API.decorator.command import function_records, MessageType
 from plugin_system.plugin_transfer import plugin_transfer
-from API.api_load_config import load_config
 
 
 def check_start_symbols(text):
@@ -29,10 +28,28 @@ async def process_message(data, websocket, plugin_list):
         data = data.decode("utf-8")
 
     split_list = data.split("<")
+
+    async def login_error(data):
+        if data[:1] == '%*"':
+            error_code = data[:-3]
+            if error_code == 1:
+                logger.error('[登陆|错误] 用户不存在')
+            elif error_code == 2:
+                logger.error('[登陆|错误] 密码错误')
+            elif error_code == 0:
+                logger.error('[登陆|错误] 名字被占用')
+            elif error_code == 2:
+                logger.error('[登陆|错误] 用户不存在')
+        else:
+            from ws_iirose.login_bot import init_plugin
+            await init_plugin()
+
     if len(split_list) <= 1:
         for i in split_list:
             if not i[:1] == "%":
                 msg_list.append(i)
+            else:
+                await login_error(data)
     else:
         start_symbol_text = None
         if not data[:1] == "%":
@@ -46,6 +63,8 @@ async def process_message(data, websocket, plugin_list):
                         msg_list.append(start_symbol_text + s_list)
                     except:
                         msg_list.append(s_list)
+        else:
+            await login_error(data)
 
     for data in reversed(msg_list):
         if data == 'm':
@@ -124,10 +143,6 @@ async def process_message(data, websocket, plugin_list):
                                 is_bot = True if msg[9][:2] == "4'" else False
 
                             logger.info(f'[事件|用户加入房间] {Message.user_name}({Message.user_id})')
-                            bot_name, room_id, bot_password = load_config()
-                            if Message.user_name == bot_name:
-                                from ws_iirose.login_bot import init_plugin
-                                await init_plugin()
                             await plugin_transfer('user_join_room', Message)
                             continue
 
