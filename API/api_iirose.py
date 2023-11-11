@@ -1,5 +1,6 @@
 import json
 import subprocess
+from enum import Enum
 
 from loguru import logger
 import random
@@ -10,6 +11,13 @@ import requests
 from globals.globals import GlobalVal
 from API.api_load_config import load_config
 from ws_iirose.transfer_plugin import MessageType
+
+
+class PlatformType(Enum):
+    no_platform = 0
+    netease = 1
+    qq = 2
+    kugou = 3
 
 
 class APIIirose:
@@ -123,11 +131,12 @@ class APIIirose:
         return {"code": 200}
 
     @staticmethod
-    async def play_media(media_type: bool, media_url: str, netease: bool = False, music_name: str = '未知', music_auther: str = '未知', music_lrc: str = '未知', music_pic: str = 'https://static.codemao.cn/rose/v0/images/system/demandAlbumLarge.png', music_netease_song_id: str = ''):
+    async def play_media(media_type: bool, media_url: str, send_card: bool = True, platform_type: PlatformType = PlatformType.no_platform, music_name: str = '未知', music_auther: str = '未知', music_lrc: str = '未知', music_pic: str = 'https://static.codemao.cn/rose/v0/images/system/demandAlbumLarge.png', music_song_id: str = ''):
         """
         播放媒体，需要依赖ffmpeg获取视频长度，为网易云音乐时可以通过music开头的几个变量自定义内容
-        :param netease: 开启后可以使用music开头的变量
-        :param music_netease_song_id: 网易云歌曲id
+        :param send_card: 是否发送卡片消息
+        :param platform_type: 平台类型，需导入 PlatformType Enum进行选择 输入后music开头的参数歌曲id为必填
+        :param music_song_id: 歌曲id
         :param music_pic: 音乐封面
         :param music_lrc: 音乐歌词
         :param music_auther: 音乐作者
@@ -150,8 +159,9 @@ class APIIirose:
             media_data = json.loads(output)
             duration = float(media_data['format']['duration'])
         except:
-            return {"code": 403, "error": "无法访问到媒体"}
-        if netease:
+            return {"code": 403, "error": "无法访问到媒体或无法调用ffprobe,请检查媒体是否正确以及ffmpeg是否安装并且环境变量配置正确"}
+
+        if platform_type == PlatformType.netease:
             card_json = {
                 "m": f"m__4@0"
                      f">{music_name}>{music_auther}"
@@ -160,7 +170,25 @@ class APIIirose:
                 "mc": "0",
                 "i": str(random.random())[2:14]
             }
-        else:
+        elif platform_type == PlatformType.qq:
+            card_json = {
+                "m": f"m__4@2"
+                     f">{music_name}>{music_auther}"
+                     f">{music_pic}"
+                     f">0c0a15>128",
+                "mc": "0",
+                "i": str(random.random())[2:14]
+            }
+        elif platform_type == PlatformType.kugou:
+            card_json = {
+                "m": f"m__4@4"
+                     f">{music_name}>{music_auther}"
+                     f">{music_pic}"
+                     f">0c0a15>128",
+                "mc": "0",
+                "i": str(random.random())[2:14]
+            }
+        elif platform_type == PlatformType.no_platform:
             card_json = {
                 "m": f"m__4={media_type}"
                      f">>{music_auther}"
@@ -168,17 +196,20 @@ class APIIirose:
                 "mc": "0",
                 "i": str(random.random())[2:14]
             }
+        else:
+            return {'code': 403, 'error': '未知平台'}
 
         if media_url[:5] == "https":
             media_url = media_url[4:]
         elif media_url[:5] == "http:":
             media_url = media_url[4:]
 
-        if netease:
-            if music_pic[:5] == "https":
-                music_pic = music_pic[4:]
-            elif music_pic[:5] == "http:":
-                music_pic = music_pic[4:]
+        if music_pic[:5] == "https":
+            music_pic = music_pic[4:]
+        elif music_pic[:5] == "http:":
+            music_pic = music_pic[4:]
+
+        if platform_type == PlatformType.netease:
             media_json = {
                 "s": media_url,
                 "d": duration,
@@ -186,10 +217,32 @@ class APIIirose:
                 "n": music_name,
                 "r": music_auther,
                 "b": "@0",
-                "o": f's://music.163.com/#/song?id={music_netease_song_id}',
+                "o": f's://music.163.com/#/song?id={music_song_id}',
                 "l": music_lrc
             }
-        else:
+        if platform_type == PlatformType.qq:
+            media_json = {
+                "s": media_url,
+                "d": duration,
+                "c": music_pic,
+                "n": music_name,
+                "r": music_auther,
+                "b": "@2",
+                "o": f's://y.qq.com/n/ryqq/songDetail/{music_song_id}',
+                "l": music_lrc
+            }
+        if platform_type == PlatformType.kugou:
+            media_json = {
+                "s": media_url,
+                "d": duration,
+                "c": music_pic,
+                "n": music_name,
+                "r": music_auther,
+                "b": "@4",
+                "o": f's://www.kugou.com/song/#hash={music_song_id}',
+                "l": music_lrc
+            }
+        elif platform_type == PlatformType.no_platform:
             media_json = {
                 "s": media_url,
                 "d": duration,
@@ -198,8 +251,11 @@ class APIIirose:
                 "r": music_auther,
                 "b": f"={media_type}"
             }
+        else:
+            return {'code': 403, 'error': '未知平台'}
 
-        await GlobalVal.websocket.send(json.dumps(card_json))
+        if send_card:
+            await GlobalVal.websocket.send(json.dumps(card_json))
         await GlobalVal.websocket.send('&1' + json.dumps(media_json))
 
         return {"code": 200, 'duration': duration}
