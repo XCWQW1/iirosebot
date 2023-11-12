@@ -5,6 +5,7 @@ import queue
 
 from loguru import logger
 from globals.globals import GlobalVal
+from plugin_system.plugin_init import plugin_manage_data
 
 task_queue = queue.Queue()
 
@@ -25,20 +26,23 @@ async def plugin_transfer_thread(function_name, data=None, one_func=False):
                 plugin_name = plugin_date['name']
                 plugin_def = plugin_date['def']
                 plugin_file_path = plugin_date['file_path']
-                if plugin_def is not None:
-                    if function_name in plugin_def:
-                        try:
-                            if data is not None:
-                                try:
-                                    len(data)
-                                    task = asyncio.create_task(plugin_def[function_name](*data))
-                                except:
-                                    task = asyncio.create_task(plugin_def[function_name](data))
-                            else:
-                                task = asyncio.create_task(plugin_def[function_name]())
 
-                        except Exception as e:
-                            logger.error(f'调用插件 {plugin_file_path} 报错：{traceback.format_exc()}')
+                if plugin_name in plugin_manage_data:
+                    if plugin_manage_data[plugin_name]['status']:
+                        if plugin_def is not None:
+                            if function_name in plugin_def:
+                                try:
+                                    if data is not None:
+                                        try:
+                                            len(data)
+                                            task = asyncio.create_task(plugin_def[function_name](*data))
+                                        except:
+                                            task = asyncio.create_task(plugin_def[function_name](data))
+                                    else:
+                                        task = asyncio.create_task(plugin_def[function_name]())
+
+                                except Exception as e:
+                                    logger.error(f'调用插件 {plugin_file_path} 报错：{traceback.format_exc()}')
 
 
 class PluginTransferThread(threading.Thread):

@@ -9,6 +9,7 @@ import traceback
 from loguru import logger
 
 plugin_data_list = {}
+plugin_manage_data = {}
 
 
 async def find_plugin():
@@ -74,6 +75,9 @@ async def get_functions_from_file(file_path, plugin_name):
                 "description": None,
                 "dependencies": {}
             }
+        plugin_manage_data[plugin_name] = {
+            "status": True
+        }
         plugin_data_list[plugin_name] = PLUGIN_DATE
 
     except Exception as e:

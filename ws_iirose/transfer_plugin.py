@@ -6,6 +6,7 @@ import traceback
 from loguru import logger
 from API.decorator.command import function_records, MessageType
 from plugin_system.plugin_transfer import plugin_transfer
+from plugin_system.plugin_init import plugin_manage_data
 
 
 def check_start_symbols(text):
@@ -267,6 +268,9 @@ async def process_message(data, websocket, plugin_list):
                     plugin_list_remake[plugin_list[plugin_list_r]['name']] = plugin_list[plugin_list_r]
 
                 for func in function_records:
+                    if func in plugin_manage_data:
+                        if not plugin_manage_data[func]['status']:
+                            continue
                     for com_list in function_records[func]:
                         if com_list in Message.message:
                             if function_records[func][com_list]['substring_bool']:
