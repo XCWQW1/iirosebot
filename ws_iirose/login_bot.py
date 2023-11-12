@@ -43,4 +43,4 @@ async def init_plugin():
         logger.info('执行插件初始化')
         await plugin_transfer('on_init')
         on_init = True
-    logger.info('高性能ですから')
+        logger.info('高性能ですから')

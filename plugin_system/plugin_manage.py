@@ -1,14 +1,24 @@
-import os
-import json
+from plugin_system.plugin_init import plugin_manage_data
 
 
-plugin_json = {}
+async def on_plugin(plugin_name):
+    if plugin_name in plugin_manage_data:
+        plugin_manage_data[plugin_name]['status'] = True
+        return {'code': 200}
+    else:
+        return {'code': 404, 'error': '找不到该插件'}
 
 
-if os.path.exists('config/plugin_manage.json'):
-    with open('data.json', 'r') as f:
-        plugin_json = json.load(f)
-else:
-    with open('data.json', 'w') as f:
-        json.dump(plugin_json, f)
+async def off_plugin(plugin_name):
+    if plugin_name in plugin_manage_data:
+        plugin_manage_data[plugin_name]['status'] = False
+        return {'code': 200}
+    else:
+        return {'code': 404, 'error': '找不到该插件'}
 
+
+async def plugin_status(plugin_name):
+    if plugin_name in plugin_manage_data:
+        return plugin_manage_data[plugin_name]['status']
+    else:
+        return False
