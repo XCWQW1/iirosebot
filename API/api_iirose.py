@@ -160,7 +160,6 @@ class APIIirose:
             duration = float(media_data['format']['duration'])
         except:
             return {"code": 403, "error": "无法访问到媒体或无法调用ffprobe,请检查媒体是否正确以及ffmpeg是否安装并且环境变量配置正确"}
-
         if platform_type == PlatformType.netease:
             card_json = {
                 "m": f"m__4@0"
@@ -196,8 +195,6 @@ class APIIirose:
                 "mc": "0",
                 "i": str(random.random())[2:14]
             }
-        else:
-            return {'code': 403, 'error': '未知平台'}
 
         if media_url[:5] == "https":
             media_url = media_url[4:]
@@ -251,8 +248,6 @@ class APIIirose:
                 "r": music_auther,
                 "b": f"={media_type}"
             }
-        else:
-            return {'code': 403, 'error': '未知平台'}
 
         if send_card:
             await GlobalVal.websocket.send(json.dumps(card_json))
