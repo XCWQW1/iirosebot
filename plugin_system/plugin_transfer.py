@@ -58,7 +58,9 @@ class PluginTransferThread(threading.Thread):
                 pass
             else:
                 try:
-                    asyncio.run(plugin_transfer_thread(*task))
+                    def run_task():
+                        asyncio.run(plugin_transfer_thread(*task))
+                    threading.Thread(target=run_task).start()
                 except Exception as e:
                     logger.error(f'执行插件任务报错：{traceback.format_exc()}')
                 self.queue.task_done()
