@@ -1,4 +1,5 @@
 import os
+import signal
 import sys
 import asyncio
 import configparser
@@ -33,6 +34,12 @@ async def create_config_file(config_path):
         config.write(f)
     logger.error(f'配置文件 {config_path} 不存在，已自动创建')
     logger.info("已关闭程序，请配置后重载")
+    logger.info('框架已关闭')
+    pid = os.getpid()
+    if sys.platform == 'win32':
+        os.kill(pid, signal.CTRL_C_EVENT)
+    else:
+        os.kill(pid, signal.SIGKILL)
     sys.exit(0)
 
 
