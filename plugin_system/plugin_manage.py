@@ -26,9 +26,7 @@ async def reload_plugin(plugin_name):
             plugin_list[plugin_info['name']] = plugin_info
 
         def_ls = await get_functions_from_file(plugin_list[plugin_name]['file_path'], plugin_list[plugin_name]['name'])
-        print(GlobalVal.plugin_list[plugin_list[plugin_name]['num']])
         GlobalVal.plugin_list[plugin_list[plugin_name]['num']] = {'name': plugin_list[plugin_name]['name'], 'file_path': plugin_list[plugin_name]['file_path'], 'def': def_ls}
-        print(GlobalVal.plugin_list[plugin_list[plugin_name]['num']])
         return {'code': 200}
     else:
         return {'code': 404, 'error': '找不到该插件'}
