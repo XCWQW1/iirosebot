@@ -18,34 +18,6 @@ async def find_plugin():
     return plugin_files
 
 
-async def plugins_date(plugin_dict):
-    logger.info('正在获取插件元数据')
-    for plugin_key, plugin_date in plugin_dict.items():
-        plugin_name = plugin_date['name']
-        plugin_file_path = plugin_date['file_path']
-        try:
-            spec = importlib.util.spec_from_file_location('', plugin_file_path)
-            module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(module)
-        except:
-            logger.error(f'获取插件 {plugin_file_path} 元数据报错：{traceback.format_exc()}')
-            continue
-
-        if hasattr(module, 'PLUGIN_DATE'):
-            PLUGIN_DATE = getattr(module, 'PLUGIN_DATE')
-        else:
-            PLUGIN_DATE = {
-                'name': plugin_name,
-                "author": None,
-                'version': None,
-                "description": None,
-                "dependencies": {}
-            }
-        plugin_data_list[plugin_name] = PLUGIN_DATE
-    logger.info(f'共成功获取到 {len(plugin_data_list)} 个插件的元数据')
-    return plugin_data_list
-
-
 async def get_functions_from_file(file_path, plugin_name):
     try:
         module_name = inspect.getmodulename(file_path)
