@@ -10,8 +10,7 @@ from plugin_system.plugin_transfer import plugin_transfer
 on_init = False
 
 
-async def login_to_server(websocket, plugin_list):
-    GlobalVal.plugin_list = plugin_list
+async def login_to_server(websocket):
     bot_name, room_id, bot_password = load_config()
     logger.info('开始登陆')
     # 登陆

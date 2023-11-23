@@ -50,6 +50,7 @@ def on_command(command: str, substring: list[bool, int] or bool, command_type: l
             function_records[file_name][record['command']] = record
         else:
             function_records[file_name] = {record['command']: record}
+
         return func
 
     if callable(command or substring):

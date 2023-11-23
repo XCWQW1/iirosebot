@@ -35,6 +35,12 @@ async def plugin_manage(Message, text):
                 await API.send_msg(Message, '启用成功！')
             else:
                 await API.send_msg(Message, '启用失败，请检查插件名是否正确')
+        elif text[:2] == '重载':
+            data = await reload_plugin(text[3:])
+            if data['code'] == 200:
+                await API.send_msg(Message, '重载成功！')
+            else:
+                await API.send_msg(Message, '重载失败，请检查插件名是否正确')
         else:
             await API.send_msg(Message, '未知参数')
     else:

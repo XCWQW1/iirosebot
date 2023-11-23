@@ -5,6 +5,7 @@ import traceback
 
 from loguru import logger
 from API.decorator.command import function_records, MessageType
+from globals.globals import GlobalVal
 from plugin_system.plugin_transfer import plugin_transfer
 from plugin_system.plugin_init import plugin_manage_data
 
@@ -20,7 +21,7 @@ def check_start_symbols(text):
         return False, None
 
 
-async def process_message(data, websocket, plugin_list):
+async def process_message(data, websocket):
     msg_list = []
 
     if data[0] == 1:
@@ -264,8 +265,8 @@ async def process_message(data, websocket, plugin_list):
             if Message is not None and hasattr(Message, 'message'):
                 # 调用注册过的命令
                 plugin_list_remake = {}
-                for plugin_list_r in plugin_list:
-                    plugin_list_remake[plugin_list[plugin_list_r]['name']] = plugin_list[plugin_list_r]
+                for plugin_list_r in GlobalVal.plugin_list:
+                    plugin_list_remake[GlobalVal.plugin_list[plugin_list_r]['name']] = GlobalVal.plugin_list[plugin_list_r]
 
                 for func in function_records:
                     if func in plugin_manage_data:
@@ -273,6 +274,9 @@ async def process_message(data, websocket, plugin_list):
                             continue
                     for com_list in function_records[func]:
                         if com_list in Message.message:
+                            if not function_records[func][com_list]['func_name'] in plugin_list_remake[func]['def']:
+                                del function_records[func][com_list]['func_name']
+                                return
                             if function_records[func][com_list]['substring_bool']:
                                 if len(Message.message) > function_records[func][com_list][
                                     'substring_num'] and Message.message[
