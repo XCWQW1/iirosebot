@@ -22,7 +22,7 @@ async def plugin_manage(Message, text):
             msg = ''
             for i in plugin_manage_data:
                 msg += f'{"启用" if plugin_manage_data[i]["status"] else "禁用"}-{i}\n'
-            await API.send_msg(Message, send_markdown_code(msg[:-2]))
+            await API.send_msg(Message, send_markdown_code(msg[:-1]))
         elif text[:2] == '禁用':
             data = await off_plugin(text[3:])
             if data['code'] == 200:
@@ -41,6 +41,12 @@ async def plugin_manage(Message, text):
                 await API.send_msg(Message, '重载成功！')
             else:
                 await API.send_msg(Message, '重载失败，请检查插件名是否正确')
+        elif text[:2] == '加载':
+            data = await load_plugin(text[3:])
+            if data['code'] == 200:
+                await API.send_msg(Message, '加载成功！')
+            else:
+                await API.send_msg(Message, '加载失败，请检查插件名是否正确')
         else:
             await API.send_msg(Message, '未知参数')
     else:
