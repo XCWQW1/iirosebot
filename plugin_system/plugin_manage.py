@@ -1,3 +1,6 @@
+import os
+import sys
+
 from globals.globals import GlobalVal
 from plugin_system.plugin_init import plugin_manage_data, get_functions_from_file
 
@@ -27,6 +30,20 @@ async def reload_plugin(plugin_name):
 
         def_ls = await get_functions_from_file(plugin_list[plugin_name]['file_path'], plugin_list[plugin_name]['name'])
         GlobalVal.plugin_list[plugin_list[plugin_name]['num']] = {'name': plugin_list[plugin_name]['name'], 'file_path': plugin_list[plugin_name]['file_path'], 'def': def_ls}
+        return {'code': 200}
+    else:
+        return {'code': 404, 'error': '找不到该插件'}
+
+
+async def load_plugin(plugin_name):
+    file_path = f"plugins/{plugin_name}.py"
+    if os.path.exists(file_path):
+        if sys.platform.startswith("win32"):
+            name = file_path.split('plugins\\')[1].replace('.py', '')
+        else:
+            name = file_path.split('plugins/')[1].replace('.py', '')
+        def_ls = await get_functions_from_file(file_path, name)
+        GlobalVal.plugin_list[len(GlobalVal.plugin_list)] = {'name': name, 'file_path': file_path, 'def': def_ls}
         return {'code': 200}
     else:
         return {'code': 404, 'error': '找不到该插件'}
