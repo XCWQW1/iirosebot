@@ -131,9 +131,11 @@ class APIIirose:
         return {"code": 200}
 
     @staticmethod
-    async def play_media(media_type: bool, media_url: str, send_card: bool = True, platform_type: PlatformType = PlatformType.no_platform, music_name: str = '未知', music_auther: str = '未知', music_lrc: str = '未知', music_pic: str = 'https://static.codemao.cn/rose/v0/images/system/demandAlbumLarge.png', music_song_id: str = ''):
+    async def play_media(media_type: bool, media_url: str, send_card: bool = True, platform_type: PlatformType = PlatformType.no_platform, music_name: str = '未知', music_auther: str = '未知', music_lrc: str = '未知', music_pic: str = 'https://static.codemao.cn/rose/v0/images/system/demandAlbumLarge.png', music_song_id: str = '', media_time: int = None, music_br = 128):
         """
-        播放媒体，需要依赖ffmpeg获取视频长度，为网易云音乐时可以通过music开头的几个变量自定义内容
+        播放媒体，需要依赖ffmpeg获取视频长度，为网易云音乐时可以通过music开头的几个变量自定义内容，如果提供了媒体时长可不依赖ffmpeg
+        :param music_br: 音乐码率
+        :param media_time:  媒体时长
         :param send_card: 是否发送卡片消息
         :param platform_type: 平台类型，需导入 PlatformType Enum进行选择 输入后music开头的参数歌曲id为必填
         :param music_song_id: 歌曲id
@@ -151,21 +153,25 @@ class APIIirose:
         else:
             # video
             media_type = 1
-
-        try:
-            command = ['ffprobe', '-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', media_url]
-            result = subprocess.run(command, capture_output=True, text=True)
-            output = result.stdout
-            media_data = json.loads(output)
-            duration = float(media_data['format']['duration'])
-        except:
-            return {"code": 403, "error": "无法访问到媒体或无法调用ffprobe,请检查媒体是否正确以及ffmpeg是否安装并且环境变量配置正确"}
+        if media_time is None:
+            try:
+                command = ['ffprobe', '-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams',
+                           media_url]
+                result = subprocess.run(command, capture_output=True, text=True)
+                output = result.stdout
+                media_data = json.loads(output)
+                duration = float(media_data['format']['duration'])
+            except:
+                return {"code": 403,
+                        "error": "无法访问到媒体或无法调用ffprobe,请检查媒体是否正确以及ffmpeg是否安装并且环境变量配置正确"}
+        else:
+            duration = media_time
         if platform_type == PlatformType.netease:
             card_json = {
                 "m": f"m__4@0"
                      f">{music_name}>{music_auther}"
                      f">{music_pic}"
-                     f">0c0a15>128",
+                     f">0c0a15>{music_br}",
                 "mc": "0",
                 "i": str(random.random())[2:14]
             }
@@ -174,7 +180,7 @@ class APIIirose:
                 "m": f"m__4@2"
                      f">{music_name}>{music_auther}"
                      f">{music_pic}"
-                     f">0c0a15>128",
+                     f">0c0a15>{music_br}",
                 "mc": "0",
                 "i": str(random.random())[2:14]
             }
@@ -183,7 +189,7 @@ class APIIirose:
                 "m": f"m__4@4"
                      f">{music_name}>{music_auther}"
                      f">{music_pic}"
-                     f">0c0a15>128",
+                     f">0c0a15>{music_br}",
                 "mc": "0",
                 "i": str(random.random())[2:14]
             }

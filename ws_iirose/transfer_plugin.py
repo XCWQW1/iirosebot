@@ -9,6 +9,8 @@ from globals.globals import GlobalVal
 from plugin_system.plugin_transfer import plugin_transfer
 from plugin_system.plugin_init import plugin_manage_data
 
+gold = 0
+
 
 def check_start_symbols(text):
     pattern = r'^(\W+)'  # 匹配一个或多个非单词字符（符号）开头
@@ -22,6 +24,7 @@ def check_start_symbols(text):
 
 
 async def process_message(data, websocket):
+    global gold
     msg_list = []
 
     if data[0] == 1:
@@ -78,6 +81,22 @@ async def process_message(data, websocket):
                 # 切媒体
                 logger.info(f'[事件|媒体] 切媒体')
                 await plugin_transfer('media_cut')
+                return
+
+            if data[:1] == ">":
+                msg = data[1:].split('"')
+
+                class Data:
+                    price_share = msg[2]
+                    total_share = msg[0]
+                    total_money = msg[1]
+                    hold_share = msg[3]
+                    hold_money = msg[4]
+
+                if Data.price_share != gold:
+                    gold = Data.price_share
+                    logger.info(f'[事件|股票] 股价：{Data.price_share} 钞/股，总股: {Data.total_share}，总金: {Data.total_money}，持股: {Data.hold_share}，余额: {Data.hold_money}')
+                    await plugin_transfer('share', Data)
                 return
 
             if data[:1] == '"':
