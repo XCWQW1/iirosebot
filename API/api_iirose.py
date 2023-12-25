@@ -131,7 +131,17 @@ class APIIirose:
         return {"code": 200}
 
     @staticmethod
-    async def play_media(media_type: bool, media_url: str, send_card: bool = True, platform_type: PlatformType = PlatformType.no_platform, music_name: str = '未知', music_auther: str = '未知', music_lrc: str = '未知', music_pic: str = 'https://static.codemao.cn/rose/v0/images/system/demandAlbumLarge.png', music_song_id: str = '', media_time: int = None, music_br = 128):
+    async def play_media(media_type: bool,
+                         media_url: str,
+                         send_card: bool = True,
+                         platform_type: PlatformType = PlatformType.no_platform,
+                         music_name: str = '未知',
+                         music_auther: str = '未知',
+                         music_lrc: str = '未知',
+                         music_pic: str = 'https://static.codemao.cn/rose/v0/images/system/demandAlbumLarge.png',
+                         music_song_id: str = '',
+                         media_time: int = None,
+                         music_br=128):
         """
         播放媒体，需要依赖ffmpeg获取视频长度，为网易云音乐时可以通过music开头的几个变量自定义内容，如果提供了媒体时长可不依赖ffmpeg
         :param music_br: 音乐码率
