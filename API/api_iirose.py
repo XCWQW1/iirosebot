@@ -280,3 +280,15 @@ class APIIirose:
     async def revoke_message(message_id: str):
         await GlobalVal.websocket.send(f'v0#{message_id}')
         return {"code": 200}
+
+    @staticmethod
+    async def update_share():
+        await GlobalVal.websocket.send(f'>#')
+
+    @staticmethod
+    async def buy_share(num: int):
+        await GlobalVal.websocket.send(f'>${num}')
+
+    @staticmethod
+    async def sell_share(num: int):
+        await GlobalVal.websocket.send(f'>@{num}')
