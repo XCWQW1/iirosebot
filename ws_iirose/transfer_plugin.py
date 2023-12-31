@@ -87,15 +87,20 @@ async def process_message(data, websocket):
 
             if data[:1] == ">":
                 msg = data[1:].split('"')
+                if len(msg) != 5:
+                    return
 
                 class Data:
                     price_share = float(msg[2])
                     old_price_share = float(gold)
                     total_share = int(msg[0])
                     total_money = float(msg[1])
-                    hold_share = int(msg[3])
+                    hold_share = float(msg[3])
                     hold_money = float(msg[4])
 
+                if Data.price_share == 1.0:
+                    logger.info(f'[事件|股票] 股票崩盘')
+                    await plugin_transfer('share_jump', Data)
                 if Data.price_share != gold:
                     gold = Data.price_share
                     logger.info(f'[事件|股票] 股价：{Data.price_share} 钞/股，总股: {Data.total_share}，总金: {Data.total_money}，持股: {Data.hold_share}，余额: {Data.hold_money}')
