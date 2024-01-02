@@ -272,8 +272,8 @@ class APIIirose:
         return {"code": 200, 'duration': duration}
 
     @staticmethod
-    async def stop_media():
-        await GlobalVal.websocket.send('{0' + json.dumps({"m": "cut", "mc": "0", "i": str(random.random())[2:14]}))
+    async def stop_media(text: str = 'cut'):
+        await GlobalVal.websocket.send('{0' + json.dumps({"m": text, "mc": "0", "i": str(random.random())[2:14]}))
         return {"code": 200}
 
     @staticmethod
