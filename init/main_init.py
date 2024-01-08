@@ -30,7 +30,7 @@ async def create_config_file(config_path):
         '# 主人用户唯一标识': '',
         'master_id': '',
     }
-    with open(config_path, "w") as f:
+    with open(config_path, "w", encoding='utf-8') as f:
         config.write(f)
     logger.error(f'配置文件 {config_path} 不存在，已自动创建')
     logger.info("已关闭程序，请配置后重载")
