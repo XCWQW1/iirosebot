@@ -1,6 +1,9 @@
 import gzip
 import html
+import os
 import re
+import signal
+import sys
 import traceback
 
 from loguru import logger
@@ -35,16 +38,27 @@ async def process_message(data, websocket):
     split_list = data.split("<")
 
     async def login_error(data):
-        if data[:1] == '%*"':
-            error_code = data[:-3]
-            if error_code == 1:
-                logger.error('[登陆|错误] 用户不存在')
-            elif error_code == 2:
-                logger.error('[登陆|错误] 密码错误')
-            elif error_code == 0:
-                logger.error('[登陆|错误] 名字被占用')
-            elif error_code == 2:
-                logger.error('[登陆|错误] 用户不存在')
+        if data[:3] == '%*"':
+            try:
+                error_code = int(data[3:])
+                if error_code == 0:
+                    logger.error('登陆失败：名字被占用')
+                elif error_code == 1:
+                    logger.error('登陆失败：用户不存在')
+                elif error_code == 2:
+                    logger.error('登陆失败：密码错误')
+                elif type(error_code) == int:
+                    logger.error('登陆失败：未知错误，可能今日登陆次数到达上限')
+                logger.error("已关闭程序，请检查配置文件")
+                logger.info('框架已关闭')
+                pid = os.getpid()
+                if sys.platform == 'win32':
+                    os.kill(pid, signal.CTRL_C_EVENT)
+                else:
+                    os.kill(pid, signal.SIGKILL)
+                sys.exit(0)
+            except:
+                pass
         else:
             from ws_iirose.login_bot import init_plugin
             await init_plugin()
