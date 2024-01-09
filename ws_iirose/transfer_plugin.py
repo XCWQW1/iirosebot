@@ -54,6 +54,7 @@ async def process_message(data, websocket):
             if not i[:1] == "%":
                 msg_list.append(i)
             else:
+                await websocket.send(">#")
                 await login_error(data)
     else:
         start_symbol_text = None
@@ -69,6 +70,7 @@ async def process_message(data, websocket):
                     except:
                         msg_list.append(s_list)
         else:
+            await websocket.send(">#")
             await login_error(data)
 
     for data in reversed(msg_list):
@@ -85,18 +87,24 @@ async def process_message(data, websocket):
 
             if data[:1] == ">":
                 msg = data[1:].split('"')
+                if len(msg) != 5:
+                    return
 
                 class Data:
-                    price_share = msg[2]
-                    total_share = msg[0]
-                    total_money = msg[1]
-                    hold_share = msg[3]
-                    hold_money = msg[4]
+                    price_share = float(msg[2])
+                    old_price_share = float(gold)
+                    total_share = int(msg[0])
+                    total_money = float(msg[1])
+                    hold_share = float(msg[3])
+                    hold_money = float(msg[4])
 
+                if Data.price_share == 1.0:
+                    logger.info(f'[事件|股票] 股票崩盘')
+                    await plugin_transfer('share_jump', Data)
                 if Data.price_share != gold:
                     gold = Data.price_share
                     logger.info(f'[事件|股票] 股价：{Data.price_share} 钞/股，总股: {Data.total_share}，总金: {Data.total_money}，持股: {Data.hold_share}，余额: {Data.hold_money}')
-                    await plugin_transfer('share', Data)
+                    await plugin_transfer('share_message', Data)
                 return
 
             if data[:1] == '"':

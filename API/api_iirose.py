@@ -131,7 +131,17 @@ class APIIirose:
         return {"code": 200}
 
     @staticmethod
-    async def play_media(media_type: bool, media_url: str, send_card: bool = True, platform_type: PlatformType = PlatformType.no_platform, music_name: str = '未知', music_auther: str = '未知', music_lrc: str = '未知', music_pic: str = 'https://static.codemao.cn/rose/v0/images/system/demandAlbumLarge.png', music_song_id: str = '', media_time: int = None, music_br = 128):
+    async def play_media(media_type: bool,
+                         media_url: str,
+                         send_card: bool = True,
+                         platform_type: PlatformType = PlatformType.no_platform,
+                         music_name: str = '未知',
+                         music_auther: str = '未知',
+                         music_lrc: str = '未知',
+                         music_pic: str = 'https://static.codemao.cn/rose/v0/images/system/demandAlbumLarge.png',
+                         music_song_id: str = '',
+                         media_time: int = None,
+                         music_br=128):
         """
         播放媒体，需要依赖ffmpeg获取视频长度，为网易云音乐时可以通过music开头的几个变量自定义内容，如果提供了媒体时长可不依赖ffmpeg
         :param music_br: 音乐码率
@@ -262,11 +272,23 @@ class APIIirose:
         return {"code": 200, 'duration': duration}
 
     @staticmethod
-    async def stop_media():
-        await GlobalVal.websocket.send('{0' + json.dumps({"m": "cut", "mc": "0", "i": str(random.random())[2:14]}))
+    async def stop_media(text: str = 'cut'):
+        await GlobalVal.websocket.send('{0' + json.dumps({"m": text, "mc": "0", "i": str(random.random())[2:14]}))
         return {"code": 200}
 
     @staticmethod
     async def revoke_message(message_id: str):
         await GlobalVal.websocket.send(f'v0#{message_id}')
         return {"code": 200}
+
+    @staticmethod
+    async def update_share():
+        await GlobalVal.websocket.send(f'>#')
+
+    @staticmethod
+    async def buy_share(num: int):
+        await GlobalVal.websocket.send(f'>${num}')
+
+    @staticmethod
+    async def sell_share(num: int):
+        await GlobalVal.websocket.send(f'>@{num}')
