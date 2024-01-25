@@ -7,11 +7,15 @@ import sys
 import traceback
 
 from loguru import logger
+
 from API.decorator.command import function_records, MessageType
 from globals.globals import GlobalVal
 from plugin_system.plugin_transfer import plugin_transfer
 from plugin_system.plugin_init import plugin_manage_data
+from API.api_iirose import APIIirose
 
+
+API = APIIirose()
 gold = 0
 
 
@@ -89,10 +93,16 @@ async def process_message(data, websocket):
 
     for data in reversed(msg_list):
         if data == 'm':
-            logger.info(f'[WS] 切换房间')
+            logger.info(f'[事件|移动] 切换房间')
             await websocket.close()
             return
         else:
+            if data[:2] == '-*':
+                # 其他端移动房间 需同时移动
+                logger.info(f'[事件|移动] 收到移动事件，正在前往 {data[2:]}')
+                await API.move_room(data[2:])
+                await websocket.close()
+                return
             if data == ',':
                 # 切媒体
                 logger.info(f'[事件|媒体] 切媒体')

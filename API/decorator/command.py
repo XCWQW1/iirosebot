@@ -21,14 +21,18 @@ def on_command(command: str, substring: list[bool, int] or bool, command_type: l
     """
     指令注册装饰器
     :param command:  命令
-    :param substring:  [是否取左侧判断触发，取左侧几个字符] 不需要的情况下写False
+    :param substring:  [是否取左侧判断触发，取左侧几个字符] 不需要的情况下写False，True的情况下如果不提供list框架会直接len取命令长度进行判断
     :param command_type:  指令处理那几个类型的消息 需要列表内写CommandType类，处理那几种写那几种 默认只处理房间
     :return:
     """
     def decorator(func):
         if type(substring) == bool:
-            substring_bool = substring
-            substring_num = 0
+            if substring:
+                substring_bool = substring
+                substring_num = len(command)
+            else:
+                substring_bool = substring
+                substring_num = 0
         else:
             substring_bool = substring[0]
             substring_num = substring[1]
