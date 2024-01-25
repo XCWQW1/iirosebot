@@ -18,6 +18,8 @@ class PlatformType(Enum):
     netease = 1
     qq = 2
     kugou = 3
+    bilibili_video = 4
+    bilibili_live = 5
 
 
 class APIIirose:
@@ -135,24 +137,24 @@ class APIIirose:
                          media_url: str,
                          send_card: bool = True,
                          platform_type: PlatformType = PlatformType.no_platform,
-                         music_name: str = '未知',
-                         music_auther: str = '未知',
-                         music_lrc: str = '未知',
-                         music_pic: str = 'https://static.codemao.cn/rose/v0/images/system/demandAlbumLarge.png',
+                         media_name: str = '未知',
+                         media_auther: str = '未知',
+                         media_lrc: str = '未知',
+                         media_pic: str = 'https://static.codemao.cn/rose/v0/images/system/demandAlbumLarge.png',
                          music_song_id: str = '',
                          media_time: int = None,
-                         music_br=128):
+                         media_br=128):
         """
         播放媒体，需要依赖ffmpeg获取视频长度，为网易云音乐时可以通过music开头的几个变量自定义内容，如果提供了媒体时长可不依赖ffmpeg
-        :param music_br: 音乐码率
+        :param media_br: 音乐码率
         :param media_time:  媒体时长
         :param send_card: 是否发送卡片消息
         :param platform_type: 平台类型，需导入 PlatformType Enum进行选择 输入后music开头的参数歌曲id为必填
         :param music_song_id: 歌曲id
-        :param music_pic: 音乐封面
-        :param music_lrc: 音乐歌词
-        :param music_auther: 音乐作者
-        :param music_name: 音乐名称
+        :param media_pic: 音乐封面
+        :param media_lrc: 音乐歌词
+        :param media_auther: 音乐作者
+        :param media_name: 音乐名称
         :param media_type:  媒体类型 True 为音频 False 为视频
         :param media_url:  媒体外链
         :return:
@@ -179,35 +181,43 @@ class APIIirose:
         if platform_type == PlatformType.netease:
             card_json = {
                 "m": f"m__4@0"
-                     f">{music_name}>{music_auther}"
-                     f">{music_pic}"
-                     f">0c0a15>{music_br}",
+                     f">{media_name}>{media_auther}"
+                     f">{media_pic}"
+                     f">0c0a15>{media_br}",
                 "mc": "0",
                 "i": str(random.random())[2:14]
             }
         elif platform_type == PlatformType.qq:
             card_json = {
                 "m": f"m__4@2"
-                     f">{music_name}>{music_auther}"
-                     f">{music_pic}"
-                     f">0c0a15>{music_br}",
+                     f">{media_name}>{media_auther}"
+                     f">{media_pic}"
+                     f">0c0a15>{media_br}",
                 "mc": "0",
                 "i": str(random.random())[2:14]
             }
         elif platform_type == PlatformType.kugou:
             card_json = {
                 "m": f"m__4@4"
-                     f">{music_name}>{music_auther}"
-                     f">{music_pic}"
-                     f">0c0a15>{music_br}",
+                     f">{media_name}>{media_auther}"
+                     f">{media_pic}"
+                     f">0c0a15>{media_br}",
+                "mc": "0",
+                "i": str(random.random())[2:14]
+            }
+        elif platform_type == PlatformType.bilibili_video:
+            card_json = {
+                "m": f"m__4*3"
+                     f">{media_name}>{media_auther}"
+                     f">{media_pic}",
                 "mc": "0",
                 "i": str(random.random())[2:14]
             }
         elif platform_type == PlatformType.no_platform:
             card_json = {
                 "m": f"m__4={media_type}"
-                     f">>{music_auther}"
-                     f">https://static.codemao.cn/rose/v0/images/system/demandAlbumLarge.png",
+                     f">{media_name}>{media_auther}"
+                     f">{media_pic}",
                 "mc": "0",
                 "i": str(random.random())[2:14]
             }
@@ -217,51 +227,51 @@ class APIIirose:
         elif media_url[:5] == "http:":
             media_url = media_url[4:]
 
-        if music_pic[:5] == "https":
-            music_pic = music_pic[4:]
-        elif music_pic[:5] == "http:":
-            music_pic = music_pic[4:]
+        if media_pic[:5] == "https":
+            media_pic = media_pic[4:]
+        elif media_pic[:5] == "http:":
+            media_pic = media_pic[4:]
 
         if platform_type == PlatformType.netease:
             media_json = {
                 "s": media_url,
                 "d": duration,
-                "c": music_pic,
-                "n": music_name,
-                "r": music_auther,
+                "c": media_pic,
+                "n": media_name,
+                "r": media_auther,
                 "b": "@0",
                 "o": f's://music.163.com/#/song?id={music_song_id}',
-                "l": music_lrc
+                "l": media_lrc
             }
         if platform_type == PlatformType.qq:
             media_json = {
                 "s": media_url,
                 "d": duration,
-                "c": music_pic,
-                "n": music_name,
-                "r": music_auther,
+                "c": media_pic,
+                "n": media_name,
+                "r": media_auther,
                 "b": "@2",
                 "o": f's://y.qq.com/n/ryqq/songDetail/{music_song_id}',
-                "l": music_lrc
+                "l": media_lrc
             }
         if platform_type == PlatformType.kugou:
             media_json = {
                 "s": media_url,
                 "d": duration,
-                "c": music_pic,
-                "n": music_name,
-                "r": music_auther,
+                "c": media_pic,
+                "n": media_name,
+                "r": media_auther,
                 "b": "@4",
                 "o": f's://www.kugou.com/song/#hash={music_song_id}',
-                "l": music_lrc
+                "l": media_lrc
             }
         elif platform_type == PlatformType.no_platform:
             media_json = {
                 "s": media_url,
                 "d": duration,
-                "c": music_pic,
-                "n": music_name,
-                "r": music_auther,
+                "c": media_pic,
+                "n": media_name,
+                "r": media_auther,
                 "b": f"={media_type}"
             }
 
