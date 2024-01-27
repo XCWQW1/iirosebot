@@ -12,6 +12,8 @@
   </a>
 </P>
 
+<p align="center"><a href="https://github.com/XCWQW1/iirosebot-plugins/blob/main/data/README.md"><strong>插件列表</strong></a></p>
+
 > 用户使用本框架做出任何行为作者不可控，产生的后果框架作者概不负责，包括但不限于使用本框架时机器人账户封号等
 
 <details>
