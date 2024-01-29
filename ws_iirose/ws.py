@@ -1,4 +1,3 @@
-import ssl
 import asyncio
 import time
 import traceback
@@ -29,7 +28,7 @@ async def connect_to_iirose_server():
     wss_host = 2
     while True:
         try:
-            async with websockets.connect(f'wss://m{wss_host if wss_host else ""}.iirose.com:8778', ssl=ssl.create_default_context()) as websocket:
+            async with websockets.connect(f'wss://m{wss_host if wss_host else ""}.iirose.com:8778') as websocket:
                 re_loop = False
                 GlobalVal.websocket = websocket
                 bot_status = Status.ONLINE
