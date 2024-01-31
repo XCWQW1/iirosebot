@@ -30,6 +30,173 @@ def check_start_symbols(text):
         return False, None
 
 
+async def pares_big(data):
+    iirose_date = GlobalVal.iirose_date
+    big_r = data.split("<")
+    user_data_json = {}
+    room_data_json = {}
+    for i in big_r:
+        if i[:1] != "%":
+            match = re.search(r'\b([\da-f]{13}_[\da-f]{13})\b', i)
+            if i[:8] == 'cartoon/':
+                user_data = i.split('>')
+                if user_data[8][:1] == 'X':
+                    user_data = i.split(">")
+                    if len(user_data) != 14:
+                        continue
+                    user_data_json[user_id] = {
+                        "id": user_data[8],
+                        "name": user_data[2],
+                        "pic": 'https://static.codemao.cn/rose/v0/images/icon/' + user_data[0] if user_data[0][-4:] == '.png' else 'https://static.codemao.cn/rose/v0/images/icon/' + user_data[0] + '.jpg',
+                        "sex": user_data[1],
+                        "color": user_data[3],
+                        "introduction": None,
+                        "room_id": user_data[4],
+                        "tag": None,
+                        "online_time": None,
+                        "private_chat_background_image": None,
+                        "status": user_data[11]
+                    }
+                    continue
+            if match:
+                room_data = i.split(">")
+                if len(room_data) == 8:
+                    room_id = room_data[0].split('_')[1]
+                    room_name = room_data[1]
+                    room_type = room_data[0].split('_')[0]
+                    room_color = room_data[2]
+                    room_p_data = room_data[3]
+
+                    if int(room_p_data[:1]) == 0:
+                        room_properties = None
+                    elif int(room_p_data[:1]) == 1:
+                        room_properties = 'music_share'
+                    elif int(room_p_data[:1]) == 2:
+                        room_properties = 'video_share'
+                    elif int(room_p_data[:1]) == 3:
+                        room_properties = 'music'
+                    elif int(room_p_data[:1]) == 4:
+                        room_properties = 'video'
+
+                    if int(room_p_data[1:2]) == 1:
+                        room_weather_environment_sound = True
+                    else:
+                        room_weather_environment_sound = False
+
+                    if int(room_p_data[2:3]) == 1:
+                        room_role_play = True
+                    else:
+                        room_role_play = False
+
+                    if len(room_p_data) == 4:
+                        if int(room_p_data[-1:]) == 0:
+                            room_language = 'ALL'
+                        elif int(room_p_data[-1:]) == 1:
+                            room_language = 'JA'
+                        elif int(room_p_data[-1:]) == 2:
+                            room_language = 'EN'
+                        elif int(room_p_data[-1:]) == 3:
+                            room_language = 'ZH'
+                        elif int(room_p_data[-1:]) == 4:
+                            room_language = 'KO'
+                        elif int(room_p_data[-1:]) == 5:
+                            room_language = 'FA'
+                        else:
+                            room_language = None
+                    else:
+                        room_language = None
+
+                    room_data = room_data[5].split("&&")
+                    room_pic = room_data[0].split(' ')[0] if room_data[0][:3] in ['s:/', '://'] else None
+                    room_pic = 'http' + room_pic if room_pic else None
+
+                    room_introduction = room_data[0].split(' ', maxsplit=1)[1] if not \
+                    room_data[0].split(' ', maxsplit=1)[1] == '' else None
+                    room_created = room_data[1]
+                    room_member = room_data[4].split(' & ') if room_data[4] != '' else None
+                    room_photo_album = ['http' + url_p for url_p in room_data[7].split(' ')] if room_data[
+                                                                                                    7] != '' else None
+
+                    room_data = room_data[6].split(' ', maxsplit=1)
+                    if len(room_data) >= 2:
+                        room_music_url = room_data[0]
+                        room_music_pic = room_data[1].split('@|')[0]
+                        room_music_name = room_data[1].split('@|')[1]
+                        room_music_auther = room_data[1].split('@|')[2]
+                    else:
+                        room_music_url = None
+                        room_music_pic = None
+                        room_music_name = None
+                        room_music_auther = None
+
+                    room_data_json[room_id] = {
+                        "id": room_id,
+                        "name": room_name,
+                        "type": room_type,
+                        "color": room_color,
+                        "pic": room_pic,
+                        "introduction": room_introduction,
+                        "created": room_created,
+                        "member": room_member,
+                        "photo_album": room_photo_album,
+                        "music_url": room_music_url,
+                        "music_name": room_music_name,
+                        "music_auther": room_music_auther,
+                        "properties": room_properties,
+                        "language": room_language,
+                        "weather_environment_sound": room_weather_environment_sound,
+                        "role_play": room_role_play
+                    }
+                    continue
+            else:
+                if i[:4] == 'http':
+                    i = i.split('>')
+                    if len(i) != 14:
+                        continue
+
+                    user_pic = i[0]
+                    user_sex = i[1]
+                    user_name = i[2]
+                    user_color = i[3]
+                    user_id = i[8]
+                    user_introduction = i[6] if not i[6] == '' else None
+                    user_room_id = i[4]
+                    user_tag = i[12] if not i[12] == '' else None
+                    user_online_time = i[13].replace("'", '')
+                    user_private_chat_background_image = i[10] if not i[10] == '' else None
+                    user_status = i[11]
+
+                    if user_online_time == '':
+                        user_online_time = 0
+                    else:
+                        user_online_time = int(re.sub(r"\D", "", user_online_time))
+
+                    if user_status == '':
+                        user_status = 0
+                    elif user_status == 'a':
+                        user_status = 12
+                    elif user_status == '*':
+                        user_status = 11
+
+                    user_data_json[user_id] = {
+                        "id": user_id,
+                        "name": user_name,
+                        "pic": user_pic,
+                        "sex": user_sex,
+                        "color": user_color,
+                        "introduction": user_introduction,
+                        "room_id": user_room_id,
+                        "tag": user_tag,
+                        "online_time": user_online_time,
+                        "private_chat_background_image": user_private_chat_background_image,
+                        "status": user_status
+                    }
+                    continue
+
+    GlobalVal.iirose_date['room'] = room_data_json
+    GlobalVal.iirose_date['user'] = user_data_json
+
+
 async def process_message(data, websocket):
     global gold
     msg_list = []
@@ -63,9 +230,6 @@ async def process_message(data, websocket):
                 sys.exit(0)
             except:
                 pass
-        else:
-            from ws_iirose.login_bot import init_plugin
-            await init_plugin()
 
     if len(split_list) <= 1:
         for i in split_list:
@@ -74,6 +238,10 @@ async def process_message(data, websocket):
             else:
                 await websocket.send(">#")
                 await login_error(data)
+                from ws_iirose.login_bot import init_plugin
+                await init_plugin()
+                await pares_big(data)
+                await plugin_transfer('date_update')
     else:
         start_symbol_text = None
         if not data[:1] == "%":
@@ -90,6 +258,10 @@ async def process_message(data, websocket):
         else:
             await websocket.send(">#")
             await login_error(data)
+            from ws_iirose.login_bot import init_plugin
+            await init_plugin()
+            await pares_big(data)
+            await plugin_transfer('date_update')
 
     for data in reversed(msg_list):
         if data == 'm':

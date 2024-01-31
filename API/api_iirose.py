@@ -277,7 +277,11 @@ class APIIirose:
 
         if send_card:
             await GlobalVal.websocket.send(json.dumps(card_json))
-        await GlobalVal.websocket.send('&1' + json.dumps(media_json))
+        if APIIirose.get_room_info(GlobalVal.now_room_id) is None:
+            media_type = '&1'
+        else:
+            media_type = '&0'
+        await GlobalVal.websocket.send(media_type + json.dumps(media_json))
 
         return {"code": 200, 'duration': duration}
 
@@ -302,3 +306,19 @@ class APIIirose:
     @staticmethod
     async def sell_share(num: int):
         await GlobalVal.websocket.send(f'>@{num}')
+
+    @staticmethod
+    async def get_room_info(room_id: str):
+        try:
+            data = GlobalVal.iirose_date['room'][room_id]
+            return data
+        except:
+            return None
+
+    @staticmethod
+    async def get_user_info(user_id: str):
+        try:
+            data = GlobalVal.iirose_date['user'][user_id]
+            return data
+        except:
+            return None
