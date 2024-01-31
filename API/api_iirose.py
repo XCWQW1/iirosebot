@@ -277,7 +277,7 @@ class APIIirose:
 
         if send_card:
             await GlobalVal.websocket.send(json.dumps(card_json))
-        if APIIirose.get_room_info(GlobalVal.now_room_id) is None:
+        if await APIIirose.get_room_info(GlobalVal.now_room_id) is None:
             media_type = '&1'
         else:
             media_type = '&0'
