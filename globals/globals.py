@@ -5,3 +5,4 @@ class GlobalVal:
     now_room_id = None
     plugin_list = None
     plugin_status = None
+    iirose_date = {"user": {}, "room": {}}
