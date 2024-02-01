@@ -6,7 +6,7 @@ def log(log_level):
     logger.remove()
     logger.add(sys.stderr,
                format="<w>{time:YYYY-MM-DD HH:mm:ss}</w><c>|</c><level>{level: <8}</level><c>|</c><level>{message}</level> <w>({elapsed})</w>",
-               level='INFO', colorize=True)
+               level=log_level, colorize=True)
     logger.add("logs/{time:YYYY-MM-DD-HH-mm-ss}.log",
                format="<w>{time:YYYY-MM-DD HH:mm:ss}</w><c>|</c><level>{level: <8}</level><c>|</c><level>{message}</level> <w>({elapsed})</w>",
-               level='INFO', colorize=False)
+               level=log_level, colorize=False)

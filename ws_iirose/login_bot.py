@@ -30,6 +30,9 @@ async def login_to_server(websocket):
         "mu": '01'
     }
     if GlobalVal.move_room:
+        login_json['lr'] = GlobalVal.old_room_id
+        if GlobalVal.room_password is not None:
+            login_json['rp'] = GlobalVal.room_password
         GlobalVal.move_room = False
     await websocket.send('*' + json.dumps(login_json))
     logger.info('已发送登陆信息')
