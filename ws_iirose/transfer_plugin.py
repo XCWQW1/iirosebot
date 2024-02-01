@@ -218,8 +218,10 @@ async def process_message(data, websocket):
                     logger.error('登陆失败：用户不存在')
                 elif error_code == 2:
                     logger.error('登陆失败：密码错误')
+                elif error_code == 5:
+                    logger.error('登陆失败：房间密码错误')
                 elif type(error_code) == int:
-                    logger.error('登陆失败：未知错误，可能今日登陆次数到达上限')
+                    logger.error(f'登陆失败：未知错误代码：{error_code}，可能今日登陆次数到达上限')
                 logger.error("已关闭程序，请检查配置文件")
                 logger.info('框架已关闭')
                 pid = os.getpid()
@@ -478,6 +480,23 @@ async def process_message(data, websocket):
                     await plugin_transfer('media_music_message', Message)
                     await plugin_transfer('media_message', Message)
                     continue
+            elif data[:2] == '`~':
+                try:
+                    data = int(data[2:])
+                    if data == 1:
+                        logger.info(f'[事件|房间|移动] 密码正确')
+                    else:
+                        GlobalVal.now_room_id = GlobalVal.old_room_id
+                        GlobalVal.room_id = GlobalVal.old_room_id
+                        logger.error(f'[事件|房间|移动] 密码错误')
+                    continue
+                except:
+                    pass
+            elif data == 'm!5':
+                GlobalVal.now_room_id = GlobalVal.old_room_id
+                GlobalVal.room_id = GlobalVal.old_room_id
+                logger.error(f'[事件|房间|移动] 未提供密码')
+                continue
 
             try:
                 if Message:

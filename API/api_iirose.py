@@ -81,12 +81,17 @@ class APIIirose:
         return {"code": 200}
 
     @staticmethod
-    async def move_room(room_id: str):
+    async def move_room(room_id: str, password: str = None):
         """
         移动到指定的房间
         :param room_id:  目标房间id
+        :param password: 目标房间密码，目标房间有密码的情况下需带此参数
         :return:
         """
+        if password is not None:
+            GlobalVal.room_password = password
+            await GlobalVal.websocket.send(f'=^~{room_id}>{password}')
+        GlobalVal.old_room_id = GlobalVal.now_room_id
         if GlobalVal.room_id is None:
             bot_name, c_room_id, bot_password = load_config()
         else:
@@ -96,7 +101,10 @@ class APIIirose:
             return {"code": 500, "error": "移动房间失败，原因：目标访问为当前所在房间"}
         GlobalVal.room_id = room_id
         GlobalVal.move_room = True
-        await GlobalVal.websocket.send(f'm{room_id}')
+        if password is not None:
+            await GlobalVal.websocket.send(f'm{room_id}>{password}')
+        else:
+            await GlobalVal.websocket.send(f'm{room_id}')
         return {"code": 200}
 
     @staticmethod
@@ -277,7 +285,8 @@ class APIIirose:
 
         if send_card:
             await GlobalVal.websocket.send(json.dumps(card_json))
-        if await APIIirose.get_room_info(GlobalVal.now_room_id) is None:
+        room_info = await APIIirose.get_room_info(GlobalVal.now_room_id)
+        if room_info is None or room_info == 'video_share':
             media_type = '&1'
         else:
             media_type = '&0'
