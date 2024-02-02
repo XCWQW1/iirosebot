@@ -8,6 +8,7 @@ from typing import Union
 
 import requests
 
+from API.api_get_config import get_user_color
 from globals.globals import GlobalVal
 from API.api_load_config import load_config
 from ws_iirose.transfer_plugin import MessageType
@@ -27,18 +28,20 @@ class APIIirose:
         pass
 
     @staticmethod
-    async def send_msg_to_room(msg: str, color: int = 0):
+    async def send_msg_to_room(msg: str, color: str = None):
         """
         发送消息到房间
         :param msg:  要发送的消息
         :param color:  要发送消息的背景色
         :return:
         """
-        await GlobalVal.websocket.send(json.dumps({"m": msg, "mc": color, "i": str(random.random())[2:14]}))
+        if color is None:
+            color = get_user_color()
+        await GlobalVal.websocket.send(json.dumps({"m": msg, "mc": str(color), "i": str(random.random())[2:14]}))
         return {"code": 200}
 
     @staticmethod
-    async def send_msg_to_private(msg: str, user_id: str, color: int = 0):
+    async def send_msg_to_private(msg: str, user_id: str, color: str = None):
         """
         发送消息到私聊
         :param user_id: 要发送私聊消息到的用户唯一标识
@@ -46,23 +49,26 @@ class APIIirose:
         :param color:  要发送消息的背景色
         :return:
         """
-        await GlobalVal.websocket.send(
-            json.dumps({"g": user_id, "m": msg, "mc": color, "i": str(random.random())[2:14]}))
+        if color is None:
+            color = get_user_color()
+        await GlobalVal.websocket.send(json.dumps({"g": user_id, "m": msg, "mc": str(color), "i": str(random.random())[2:14]}))
         return {"code": 200}
 
     @staticmethod
-    async def send_msg_to_danmu(msg: str, color: int = 0):
+    async def send_msg_to_danmu(msg: str, color: str = None):
         """
         发送消息到私聊~{"t":"[https://xc.null.red:8043/XCimg/img/save/E4A1F509115D8BE947EA7CAA0395E1CA-2067967008.jpg#e]","c":"236614","v":0}
         :param msg:  要发送的消息
         :param color:  要发送消息的背景色
         :return:
         """
-        await GlobalVal.websocket.send('~' + json.dumps({"t": msg, "c": color}))
+        if color is None:
+            color = get_user_color()
+        await GlobalVal.websocket.send('~' + json.dumps({"t": msg, "c": str(color)}))
         return {"code": 200}
 
     @staticmethod
-    async def send_msg(data, msg: str, color: int = 0):
+    async def send_msg(data, msg: str, color: str = None):
         """
         自动选择发送到的位置
         :param data:  输入函数中第一个参数
@@ -70,12 +76,14 @@ class APIIirose:
         :param color:  要发送消息的背景色
         :return:
         """
+        if color is None:
+            color = get_user_color()
         if data.type in [MessageType.room_chat, MessageType.join_room, MessageType.leave_room]:
-            await APIIirose.send_msg_to_room(msg, color)
+            await APIIirose.send_msg_to_room(msg, str(color))
         elif data.type == MessageType.private_chat:
-            await APIIirose.send_msg_to_private(msg, data.user_id, color)
+            await APIIirose.send_msg_to_private(msg, data.user_id, str(color))
         elif data.type == MessageType.danmu:
-            await APIIirose.send_msg_to_danmu(msg, color)
+            await APIIirose.send_msg_to_danmu(msg, str(color))
         else:
             return {"code": 404, "error": "未知的类型"}
         return {"code": 200}

@@ -1,18 +1,14 @@
-import configparser
+import yaml
 
 
 def load_config() -> [str, str, str]:
-    # 配置文件路径
-    config_path = "config/config.ini"
+    config_path = "config/config.yml"
 
-    # 读取配置文件
-    config = configparser.ConfigParser()
-    config.read(config_path)
+    with open(config_path, 'r') as file:
+        config = yaml.safe_load(file)
 
-    # 获取相应的配置信息
-    room_id = str(config.get("bot", "room_id"))
-    bot_name = str(config.get("bot", "name"))
-    bot_password = str(config.get("bot", "password"))
+    room_id = str(config['bot']['room_id'])
+    bot_name = str(config['bot']['username'])
+    bot_password = str(config['bot']['password'])
 
     return bot_name, room_id, bot_password
-

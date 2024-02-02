@@ -11,12 +11,13 @@ API = APIIirose()
 @on_command('.插件', substring=False, command_type=[MessageType.private_chat])
 async def plugin_help(Message):
     if Message.user_id == get_master_id():
-        await API.send_msg(Message, send_markdown_code('.插件 - 显示当前页面\n'
-                                                       '.插件 列表 - 列出所有插件\n'
-                                                       '.插件 启用 <插件名> - 启用插件\n'
-                                                       '.插件 禁用 <插件名> - 禁用插件\n'
-                                                       '.插件 重载 <插件名> - 重新载入插件\n'
-                                                       '.插件 加载 <插件名> - 加载未载入的插件'))
+        text = ('.插件 - 显示当前页面\n'
+                '.插件 列表 - 列出所有插件\n'
+                '.插件 启用 <插件名> - 启用插件\n'
+                '.插件 禁用 <插件名> - 禁用插件\n'
+                '.插件 重载 <插件名> - 重新载入插件\n'
+                '.插件 加载 <插件名> - 加载未载入的插件')
+        await API.send_msg(Message, send_markdown_code(text))
     else:
         await API.send_msg(Message, '无权执行')
 

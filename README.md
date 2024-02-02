@@ -14,7 +14,7 @@
 
 <p align="center"><a href="https://github.com/XCWQW1/iirosebot-plugins/blob/main/README.md"><strong>插件列表</strong></a></p>
 
-> 用户使用本框架做出任何行为作者不可控，产生的后果框架作者概不负责，包括但不限于使用本框架时机器人账户封号等
+> 用户使用本框架做出任何行为作者不可控，产生的后果框架作者概不负责，包括但不限于使用本框架时机器人账户被封禁等
 
 <details>
 <summary>开始使用：</summary>
@@ -39,8 +39,16 @@
   请先执行```python main.py```初始化后再进行操作
   
 - ### 4, 配置
-  打开 config>config.ini 文件
-  按配置文件中的注释配置每个参数，配置文件中的密码不需要md5格式
+  打开 config>config.yml 文件
+  ```yaml
+  bot:
+    color: 040b02  # 机器人消息颜色
+    password: ''  # 机器人账户的密码
+    room_id: 5ce6a4b520a90  # 机器人登陆后进入的房间id
+    username: ''  # 机器人用户名 改名后需修改这里
+  other:
+    master_id: ''  # 主人唯一标识
+  ```
   
 - ### 6, 编写插件 （可选）
 	>示例的插件 iirose_example.py iirose_flow_master.py

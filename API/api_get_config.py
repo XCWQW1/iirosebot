@@ -1,15 +1,29 @@
-import configparser
+import re
+import yaml
+
+import log.main
+
+config_path = "config/config.yml"
 
 
-def get_master_id() -> [str, str, str]:
-    # 配置文件路径
-    config_path = "config/config.ini"
+def get_master_id() -> str:
+    with open(config_path, 'r') as file:
+        config = yaml.safe_load(file)
 
-    # 读取配置文件
-    config = configparser.ConfigParser()
-    config.read(config_path)
-
-    # 获取相应的配置信息
-    master_id = str(config.get("other", "master_id"))
+    master_id = str(config["other"]["master_id"])
 
     return master_id
+
+
+def get_user_color() -> str:
+    with open(config_path, 'r') as file:
+        config = yaml.safe_load(file)
+
+    color = str(config["bot"]["color"])
+    pattern = r'^([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$'
+    if re.match(pattern, color):
+        return color
+    else:
+        log.main.logger.warning('[警告|配置] 配置文件中的颜色不符合16进制')
+        return 'DC143C'
+

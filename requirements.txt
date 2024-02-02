@@ -1,5 +1,4 @@
-art
 loguru
 requests
 websockets
-configparser
+pyyaml
