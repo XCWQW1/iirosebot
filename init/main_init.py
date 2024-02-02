@@ -1,6 +1,7 @@
 import os
-import signal
 import sys
+import yaml
+import signal
 import asyncio
 import configparser
 
@@ -16,22 +17,19 @@ async def initialize_folder(folder):
 
 
 async def create_config_file(config_path):
-    config = configparser.ConfigParser()
-    config.add_section("bot")
-    config['bot'] = {
-        '# 机器人首次加入进入的房间标识': '',
-        'room_id': '5ce6a4b520a90',
-        '# 机器人用户名': '',
-        'name': '',
-        '# 机器人账号的密码': '',
-        'password': ''
-    }
-    config['other'] = {
-        '# 主人用户唯一标识': '',
-        'master_id': '',
+    config_data = {
+        'bot': {
+            'room_id': '5ce6a4b520a90',
+            'username': '',
+            'password': '',
+            'color': '040b02'
+        },
+        'other': {
+            'master_id': ''
+        }
     }
     with open(config_path, "w", encoding='utf-8') as f:
-        config.write(f)
+        yaml.dump(config_data, f, allow_unicode=True)
     logger.error(f'配置文件 {config_path} 不存在，已自动创建')
     logger.info("已关闭程序，请配置后重载")
     logger.info('框架已关闭')
@@ -55,7 +53,7 @@ async def main_init():
     await asyncio.gather(*tasks)
 
     # 配置文件路径
-    config_path = "config/config.ini"
+    config_path = "config/config.yml"
 
     # 如果配置文件不存在，则创建一个新的配置文件
     if not os.path.exists(config_path):

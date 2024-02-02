@@ -220,6 +220,10 @@ async def process_message(data, websocket):
                     logger.error('登陆失败：密码错误')
                 elif error_code == 5:
                     logger.error('登陆失败：房间密码错误')
+                    GlobalVal.now_room_id = GlobalVal.old_room_id
+                    GlobalVal.room_id = GlobalVal.old_room_id
+                    await GlobalVal.websocket.close()
+                    return
                 elif type(error_code) == int:
                     logger.error(f'登陆失败：未知错误代码：{error_code}，可能今日登陆次数到达上限')
                 logger.error("已关闭程序，请检查配置文件")
@@ -293,7 +297,7 @@ async def process_message(data, websocket):
                     old_price_share = float(gold)
                     total_share = int(msg[0])
                     total_money = float(msg[1])
-                    hold_share = float(msg[3])
+                    hold_share = float(msg[3]) if msg[3] != '' else 0
                     hold_money = float(msg[4])
 
                 if Data.price_share == 1.0:

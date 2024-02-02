@@ -1,5 +1,9 @@
 import asyncio
 import json
+import random
+
+import requests
+
 from globals.globals import GlobalVal
 
 from loguru import logger
@@ -29,6 +33,7 @@ async def login_to_server(websocket):
         "mb": '',
         "mu": '01'
     }
+
     if GlobalVal.move_room:
         login_json['lr'] = GlobalVal.old_room_id
         if GlobalVal.room_password is not None:

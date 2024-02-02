@@ -33,7 +33,7 @@ async def connect_to_iirose_server():
                 GlobalVal.websocket = websocket
                 bot_status = Status.ONLINE
                 loop = asyncio.get_event_loop()
-                task = loop.create_task(login_to_server(websocket)), loop.create_task(ping_iirose(websocket))
+                loop.create_task(login_to_server(websocket)), loop.create_task(ping_iirose(websocket))
                 async for message in websocket:
                     await process_message(message, websocket)
         except Exception as e:
