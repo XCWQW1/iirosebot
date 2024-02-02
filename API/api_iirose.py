@@ -101,7 +101,7 @@ class APIIirose:
             await GlobalVal.websocket.send(f'=^~{room_id}>{password}')
         GlobalVal.old_room_id = GlobalVal.now_room_id
         if GlobalVal.room_id is None:
-            bot_name, c_room_id, bot_password = load_config()
+            _, c_room_id, _ = load_config()
         else:
             c_room_id = GlobalVal.room_id
         if room_id == c_room_id:
@@ -124,7 +124,7 @@ class APIIirose:
         """
 
         try:
-            if type(file_name) == str:
+            if type(file_name) is str:
                 files = {'f[]': open(file_name, 'rb')}
             else:
                 files = {'f[]': (file_name, 'image/png')}
@@ -238,14 +238,10 @@ class APIIirose:
                 "i": str(random.random())[2:14]
             }
 
-        if media_url[:5] == "https":
-            media_url = media_url[4:]
-        elif media_url[:5] == "http:":
+        if media_url[:4] == "http":
             media_url = media_url[4:]
 
-        if media_pic[:5] == "https":
-            media_pic = media_pic[4:]
-        elif media_pic[:5] == "http:":
+        if media_pic[:4] == "http":
             media_pic = media_pic[4:]
 
         if platform_type == PlatformType.netease:
