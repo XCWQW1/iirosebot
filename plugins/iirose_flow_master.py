@@ -64,6 +64,17 @@ async def back_home(Message):
         await API.send_msg(Message, f'{at_user(Message.user_name)}错误，您没有权限执行')
 
 
+async def date_update():
+    global move_to_master_bool
+    user_id_list = GlobalVal.iirose_date["user"]
+    if move_to_master_bool:
+        user_data = await API.get_user_info(get_master_id())
+        if user_data:
+            room_id = user_data["room_id"]
+            if room_id != GlobalVal.now_room_id:
+                await API.move_room(user_data['room_id'])
+            
+
 async def user_move_room(Message):
     global move_to_master_bool
     if move_to_master_bool:
