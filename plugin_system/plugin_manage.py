@@ -4,13 +4,15 @@ import sys
 from globals.globals import GlobalVal
 from plugin_system.plugin_init import plugin_manage_data, get_functions_from_file
 
+no_plugin_error = '找不到该插件'
+
 
 async def on_plugin(plugin_name):
     if plugin_name in plugin_manage_data:
         plugin_manage_data[plugin_name]['status'] = True
         return {'code': 200}
     else:
-        return {'code': 404, 'error': '找不到该插件'}
+        return {'code': 404, 'error': no_plugin_error}
 
 
 async def off_plugin(plugin_name):
@@ -18,7 +20,7 @@ async def off_plugin(plugin_name):
         plugin_manage_data[plugin_name]['status'] = False
         return {'code': 200}
     else:
-        return {'code': 404, 'error': '找不到该插件'}
+        return {'code': 404, 'error': no_plugin_error}
 
 
 async def reload_plugin(plugin_name):
@@ -32,7 +34,7 @@ async def reload_plugin(plugin_name):
         GlobalVal.plugin_list[plugin_list[plugin_name]['num']] = {'name': plugin_list[plugin_name]['name'], 'file_path': plugin_list[plugin_name]['file_path'], 'def': def_ls}
         return {'code': 200}
     else:
-        return {'code': 404, 'error': '找不到该插件'}
+        return {'code': 404, 'error': no_plugin_error}
 
 
 async def load_plugin(plugin_name):
@@ -46,7 +48,7 @@ async def load_plugin(plugin_name):
         GlobalVal.plugin_list[len(GlobalVal.plugin_list)] = {'name': name, 'file_path': file_path, 'def': def_ls}
         return {'code': 200}
     else:
-        return {'code': 404, 'error': '找不到该插件'}
+        return {'code': 404, 'error': no_plugin_error}
 
 
 async def plugin_status(plugin_name):
