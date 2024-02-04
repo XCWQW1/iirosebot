@@ -159,9 +159,11 @@ class APIIirose:
                          media_pic: str = 'https://static.codemao.cn/rose/v0/images/system/demandAlbumLarge.png',
                          music_song_id: str = '',
                          media_time: int = None,
-                         media_br=128):
+                         media_br=128,
+                         color: str = None):
         """
         播放媒体，需要依赖ffmpeg获取视频长度，为网易云音乐时可以通过music开头的几个变量自定义内容，如果提供了媒体时长可不依赖ffmpeg
+        :param color: 媒体卡片的颜色
         :param media_br: 音乐码率
         :param media_time:  媒体时长
         :param send_card: 是否发送卡片消息
@@ -175,6 +177,9 @@ class APIIirose:
         :param media_url:  媒体外链
         :return:
         """
+        if color is None:
+            color = get_user_color()
+
         if media_type:
             # music
             media_type = 0
@@ -200,7 +205,7 @@ class APIIirose:
                      f">{media_name}>{media_auther}"
                      f">{media_pic}"
                      f">0c0a15>{media_br}",
-                "mc": "0",
+                "mc": color,
                 "i": str(random.random())[2:14]
             }
         elif platform_type == PlatformType.qq:
@@ -209,7 +214,7 @@ class APIIirose:
                      f">{media_name}>{media_auther}"
                      f">{media_pic}"
                      f">0c0a15>{media_br}",
-                "mc": "0",
+                "mc": color,
                 "i": str(random.random())[2:14]
             }
         elif platform_type == PlatformType.kugou:
@@ -218,7 +223,7 @@ class APIIirose:
                      f">{media_name}>{media_auther}"
                      f">{media_pic}"
                      f">0c0a15>{media_br}",
-                "mc": "0",
+                "mc": color,
                 "i": str(random.random())[2:14]
             }
         elif platform_type == PlatformType.bilibili_video:
@@ -226,7 +231,7 @@ class APIIirose:
                 "m": f"m__4*3"
                      f">{media_name}>{media_auther}"
                      f">{media_pic}",
-                "mc": "0",
+                "mc": color,
                 "i": str(random.random())[2:14]
             }
         elif platform_type == PlatformType.no_platform:
@@ -234,14 +239,14 @@ class APIIirose:
                 "m": f"m__4={media_type}"
                      f">{media_name}>{media_auther}"
                      f">{media_pic}",
-                "mc": "0",
+                "mc": color,
                 "i": str(random.random())[2:14]
             }
 
-        if media_url[:4] == "http":
+        if media_url.startswith("http"):
             media_url = media_url[4:]
 
-        if media_pic[:4] == "http":
+        if media_pic.startswith("http"):
             media_pic = media_pic[4:]
 
         if platform_type == PlatformType.netease:
@@ -310,7 +315,7 @@ class APIIirose:
 
     @staticmethod
     async def update_share():
-        await GlobalVal.websocket.send(f'>#')
+        await GlobalVal.websocket.send('>#')
 
     @staticmethod
     async def buy_share(num: int):

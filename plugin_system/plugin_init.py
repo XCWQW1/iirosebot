@@ -52,7 +52,7 @@ async def get_functions_from_file(file_path, plugin_name):
         }
         plugin_data_list[plugin_name] = PLUGIN_DATE
 
-    except Exception as e:
+    except:
         logger.error(f'记录插件 {file_path} 中的函数出错：{traceback.format_exc()}')
         functions = None
 

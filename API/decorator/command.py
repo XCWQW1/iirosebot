@@ -26,7 +26,7 @@ def on_command(command: str, substring: list[bool, int] or bool, command_type: l
     :return:
     """
     def decorator(func):
-        if type(substring) == bool:
+        if type(substring) is bool:
             if substring:
                 substring_bool = substring
                 substring_num = len(command)

@@ -41,7 +41,7 @@ async def plugin_transfer_thread(function_name, data=None, one_func=False):
                                     else:
                                         task = asyncio.create_task(plugin_def[function_name]())
 
-                                except Exception as e:
+                                except:
                                     logger.error(f'调用插件 {plugin_file_path} 报错：{traceback.format_exc()}')
 
 
@@ -54,14 +54,12 @@ class PluginTransferThread(threading.Thread):
         while True:
             # 从队列中获取任务并执行
             task = self.queue.get()
-            if task is None:
-                pass
-            else:
+            if task is not None:
                 try:
                     def run_task():
                         asyncio.run(plugin_transfer_thread(*task))
                     threading.Thread(target=run_task).start()
-                except Exception as e:
+                except:
                     logger.error(f'执行插件任务报错：{traceback.format_exc()}')
                 self.queue.task_done()
 
