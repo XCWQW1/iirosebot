@@ -57,7 +57,7 @@ class APIIirose:
     @staticmethod
     async def send_msg_to_danmu(msg: str, color: str = None):
         """
-        发送消息到私聊~{"t":"[https://xc.null.red:8043/XCimg/img/save/E4A1F509115D8BE947EA7CAA0395E1CA-2067967008.jpg#e]","c":"236614","v":0}
+        发送消息到弹幕
         :param msg:  要发送的消息
         :param color:  要发送消息的背景色
         :return:
@@ -86,6 +86,21 @@ class APIIirose:
             await APIIirose.send_msg_to_danmu(msg, str(color))
         else:
             return {"code": 404, "error": "未知的类型"}
+        return {"code": 200}
+
+    @staticmethod
+    async def replay_msg(data, msg: str, color: str = None):
+        """
+        引用消息
+        :param data: 输入函数的第一个参数
+        :param msg: 消息内容
+        :param color: 引用消息颜色
+        :return:
+        """
+        if color is None:
+            color = get_user_color()
+
+        await GlobalVal.websocket.send(json.dumps({"m": f"{data.message} (_hr) {data.user_name}_{data.timestamp} (hr_) {msg}", "mc": str(color), "i": str(random.random())[2:14]}))
         return {"code": 200}
 
     @staticmethod
@@ -133,6 +148,8 @@ class APIIirose:
         except AttributeError:
             return {"code": 404, "error": "错误，获取不到文件", "url": None}
         except:
+            import traceback
+            traceback.print_exc()
             return {"code": 404, "error": "错误，访问接口失败", "url": None}
         if response.status_code == 200:
             return {"code": 200, "url": f'https://xc.null.red:8043/XCimg/img/{response.text}'}
@@ -295,13 +312,20 @@ class APIIirose:
         if send_card:
             await GlobalVal.websocket.send(json.dumps(card_json))
         room_info = await APIIirose.get_room_info(GlobalVal.now_room_id)
+
+        try:
+            room_info = room_info['properties']
+        except:
+            room_info = None
+
         if room_info is None or room_info == 'video_share':
             media_type = '&1'
         else:
             media_type = '&0'
-        await GlobalVal.websocket.send(media_type + json.dumps(media_json))
 
-        return {"code": 200, 'duration': duration}
+        await GlobalVal.websocket.send(media_type + json.dumps(media_json, ensure_ascii=False))
+
+        return {"code": 200, 'duration': float(duration)}
 
     @staticmethod
     async def stop_media(text: str = 'cut'):

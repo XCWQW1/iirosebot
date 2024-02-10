@@ -30,6 +30,27 @@ def check_start_symbols(text):
         return False, None
 
 
+def replay_to_json(text):
+    text = text.split(" (hr_) ")
+    reply_list = []
+    num = 0
+    for i in text:
+        data = i.split(" (_hr) ")
+
+        if len(data) == 1:
+            reply_list[len(reply_list) - 1]['reply'] = data[0]
+            break
+
+        user_data = data[1].split("_")
+        if num == 0:
+            reply_list.append({"message": data[0], "user_name": user_data[0], "timestamp": user_data[1]})
+        else:
+            reply_list[len(reply_list) - 1]['reply'] = data[0]
+            reply_list.append({"message": data[0], "user_name": user_data[0], "timestamp": user_data[1]})
+        num += 1
+    return reply_list
+
+
 async def pares_big(data):
     iirose_date = GlobalVal.iirose_date
     big_r = data.split("<")
@@ -44,7 +65,7 @@ async def pares_big(data):
                     user_data = i.split(">")
                     if len(user_data) != 14:
                         continue
-                    user_data_json[user_id] = {
+                    user_data_json[user_data[8]] = {
                         "id": user_data[8],
                         "name": user_data[2],
                         "pic": 'https://static.codemao.cn/rose/v0/images/icon/' + user_data[0] if user_data[0][-4:] == '.png' else 'https://static.codemao.cn/rose/v0/images/icon/' + user_data[0] + '.jpg',
