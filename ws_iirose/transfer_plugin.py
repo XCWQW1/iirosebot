@@ -31,24 +31,27 @@ def check_start_symbols(text):
 
 
 def replay_to_json(text):
-    text = text.split(" (hr_) ")
-    reply_list = []
-    num = 0
-    for i in text:
-        data = i.split(" (_hr) ")
+    try:
+        text = text.split(" (hr_) ")
+        reply_list = []
+        num = 0
+        for i in text:
+            data = i.split(" (_hr) ")
 
-        if len(data) == 1:
-            reply_list[len(reply_list) - 1]['reply'] = data[0]
-            break
+            if len(data) == 1:
+                reply_list[len(reply_list) - 1]['reply'] = data[0]
+                break
 
-        user_data = data[1].split("_")
-        if num == 0:
-            reply_list.append({"message": data[0], "user_name": user_data[0], "timestamp": user_data[1]})
-        else:
-            reply_list[len(reply_list) - 1]['reply'] = data[0]
-            reply_list.append({"message": data[0], "user_name": user_data[0], "timestamp": user_data[1]})
-        num += 1
-    return reply_list
+            user_data = data[1].split("_")
+            if num == 0:
+                reply_list.append({"message": data[0], "user_name": user_data[0], "timestamp": user_data[1]})
+            else:
+                reply_list[len(reply_list) - 1]['reply'] = data[0]
+                reply_list.append({"message": data[0], "user_name": user_data[0], "timestamp": user_data[1]})
+            num += 1
+        return reply_list
+    except:
+        return []
 
 
 async def pares_big(data):
@@ -349,6 +352,7 @@ async def process_message(data, websocket):
                             message_color = msg[4]
                             message_background_color = msg[5]
                             is_bot = True if msg[9][:2] == "4'" else False
+                            is_replay = False
 
                         if Message.message[:4] == 'm__4':
                             msg = Message.message.split('>')
@@ -361,6 +365,11 @@ async def process_message(data, websocket):
                             logger.info(f'[事件|媒体|点播] {Message.user_name} 点播来自 {Media.media_auther} 的 {Media.media_name}')
                             await plugin_transfer('play_media', (Message, Media))
                             return
+
+                        replay_data = replay_to_json(Message.message)
+                        if replay_data:
+                            Message.message = replay_data
+                            Message.is_replay = True
 
                         logger.info(f'[消息|房间] {Message.user_name}({Message.user_id}): {Message.message} ({Message.message_id})')
                         await plugin_transfer('room_message', Message)
@@ -426,6 +435,12 @@ async def process_message(data, websocket):
                         message_color = msg[5]
                         message_background_color = msg[6]
                         is_bot = True if msg[9][:2] == "4'" else False
+                        is_replay = False
+
+                    replay_data = replay_to_json(Message.message)
+                    if replay_data:
+                        Message.message = replay_data
+                        Message.is_replay = True
 
                     logger.info(f'[消息|私聊] {Message.user_name}({Message.user_id}): {Message.message} ({Message.message_id})')
                     await plugin_transfer('private_message', Message)
