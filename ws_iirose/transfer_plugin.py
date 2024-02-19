@@ -8,6 +8,7 @@ import traceback
 
 from loguru import logger
 
+from API.api_load_config import load_config
 from API.decorator.command import function_records, MessageType
 from globals.globals import GlobalVal
 from plugin_system.plugin_transfer import plugin_transfer
@@ -17,6 +18,7 @@ from API.api_iirose import APIIirose
 
 API = APIIirose()
 gold = 0
+bot_name, _, _ = load_config()
 
 
 def check_start_symbols(text):
@@ -230,7 +232,10 @@ async def process_message(data, websocket):
     else:
         data = data.decode("utf-8")
 
-    split_list = data.split("<")
+    if data.startswith("~"):
+        split_list = [data]
+    else:
+        split_list = data.split("<")
 
     async def login_error(data):
         if data[:3] == '%*"':
@@ -297,24 +302,58 @@ async def process_message(data, websocket):
         if data == 'm':
             logger.info(f'[事件|移动] 切换房间')
             await websocket.close()
-            return
+            continue
+        elif data.startswith("@*"):
+            data = data.split(">")
+            if len(data) == 3:
+                class Data:
+                    message = data[0][2:]
+                    pic = data[1]
+                    timestamp = data[2]
+                logger.info(f"[事件|通知|房间] 内容：{data[0][2:]}, 背景：http{data[1]}, 时间戳：{data[2]}")
+                await plugin_transfer('room_notice', Data)
+                continue
+            if len(data) == 7:
+                class Data:
+                    user_name = data[0][2:]
+                    message = data[3][2:]
+                    background_pic = data[4]
+                    timestamp = data[5]
+                    color = data[6]
+
+                logger.info(f"[事件|通知|点赞] 用户 {Data.user_name}{'' if Data.message == '' else '备注：' + Data.message}")
+                await plugin_transfer('self_like', Data)
+                continue
+        elif data.startswith("~"):
+            song_data = []
+            if data != "~":
+                for i in data[1:].split("<"):
+                    song = i.split(">")
+                    song_info = {"song_time": song[0], "song_name": song[1], "user_name": song[2], "user_pic": song[4], "song_pic": song[5]}
+                    song_data.append(song_info)
+            GlobalVal.message_data['playlist'] = song_data
+            continue
         else:
             if data[:2] == '-*':
                 # 其他端移动房间 需同时移动
                 logger.info(f'[事件|移动] 收到移动事件，正在前往 {data[2:]}')
                 await API.move_room(data[2:])
                 await websocket.close()
-                return
-            if data == ',':
+                continue
+
+            elif data.startswith("q"):
+                logger.info(f"")
+
+            elif data == ',':
                 # 切媒体
                 logger.info(f'[事件|媒体] 切媒体')
                 await plugin_transfer('media_cut')
-                return
+                continue
 
-            if data[:1] == ">":
+            elif data[:1] == ">":
                 msg = data[1:].split('"')
                 if len(msg) != 5:
-                    return
+                    continue
 
                 class Data:
                     price_share = float(msg[2])
@@ -331,9 +370,9 @@ async def process_message(data, websocket):
                     gold = Data.price_share
                     logger.info(f'[事件|股票] 股价：{Data.price_share} 钞/股，总股: {Data.total_share}，总金: {Data.total_money}，持股: {Data.hold_share}，余额: {Data.hold_money}')
                     await plugin_transfer('share_message', Data)
-                return
+                continue
 
-            if data[:1] == '"':
+            elif data[:1] == '"':
                 msg_type = data.count('"', 0, len(data))
                 msg = data.split(">")
 
@@ -354,6 +393,9 @@ async def process_message(data, websocket):
                             is_bot = True if msg[9][:2] == "4'" else False
                             is_replay = False
 
+                        if Message.user_name == bot_name:
+                            continue
+
                         if Message.message[:4] == 'm__4':
                             msg = Message.message.split('>')
 
@@ -364,7 +406,7 @@ async def process_message(data, websocket):
 
                             logger.info(f'[事件|媒体|点播] {Message.user_name} 点播来自 {Media.media_auther} 的 {Media.media_name}')
                             await plugin_transfer('play_media', (Message, Media))
-                            return
+                            continue
 
                         replay_data = replay_to_json(Message.message)
                         if replay_data:
@@ -558,7 +600,7 @@ async def process_message(data, websocket):
                         if com_list in Message.message:
                             if not function_records[func][com_list]['func_name'] in plugin_list_remake[func]['def']:
                                 del function_records[func][com_list]['func_name']
-                                return
+                                continue
                             if function_records[func][com_list]['substring_bool']:
                                 if len(Message.message) > function_records[func][com_list][
                                     'substring_num'] and Message.message[

@@ -25,20 +25,15 @@ async def create_config_file(config_path):
             'color': '040b02'
         },
         'other': {
-            'master_id': ''
+            'master_id': '',
+        },
+        'log': {
+            'level': 'INFO'
         }
     }
     with open(config_path, "w", encoding='utf-8') as f:
         yaml.dump(config_data, f, allow_unicode=True)
-    logger.error(f'配置文件 {config_path} 不存在，已自动创建')
-    logger.info("已关闭程序，请配置后重载")
-    logger.info('框架已关闭')
-    pid = os.getpid()
-    if sys.platform == 'win32':
-        os.kill(pid, signal.CTRL_C_EVENT)
-    else:
-        os.kill(pid, signal.SIGKILL)
-    sys.exit(0)
+    logger.warning(f'配置文件 {config_path} 不存在，已自动创建')
 
 
 async def main_init():
@@ -52,10 +47,8 @@ async def main_init():
 
     await asyncio.gather(*tasks)
 
-    # 配置文件路径
     config_path = "config/config.yml"
 
-    # 如果配置文件不存在，则创建一个新的配置文件
     if not os.path.exists(config_path):
         await create_config_file(config_path)
     else:

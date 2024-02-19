@@ -53,14 +53,14 @@ async def get_functions_from_file(file_path, plugin_name):
         plugin_data_list[plugin_name] = PLUGIN_DATE
 
     except:
-        logger.error(f'记录插件 {file_path} 中的函数出错：{traceback.format_exc()}')
+        logger.error(f'注册插件 {file_path} 中的函数出错：{traceback.format_exc()}')
         functions = None
 
     return functions
 
 
 async def find_plugins_functions():
-    logger.info('开始寻找插件！')
+    logger.info('开始注册插件！')
     plugin_num = 0
     plugin_dnf_list = {}
     get_find_plugins_list = await find_plugin()
@@ -69,9 +69,9 @@ async def find_plugins_functions():
             name = file_path.split('plugins\\')[1].replace('.py', '')
         else:
             name = file_path.split('plugins/')[1].replace('.py', '')
-        logger.info(f'找到插件：{name}')
+        logger.info(f'注册插件：{name}')
         def_ls = await get_functions_from_file(file_path, name)
         plugin_dnf_list[plugin_num] = {'name': name, 'file_path': file_path, 'def': def_ls}
         plugin_num = plugin_num + 1
-    logger.info(f'寻找完毕，共计 {plugin_num} 个插件以及 {len(plugin_data_list)} 条插件信息')
+    logger.info(f'注册完毕，共计 {plugin_num} 个插件以及 {len(plugin_data_list)} 条插件信息')
     return plugin_dnf_list

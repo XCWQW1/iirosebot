@@ -8,3 +8,4 @@ class GlobalVal:
     plugin_list = None
     plugin_status = None
     iirose_date = {"user": {}, "room": {}}
+    message_data = {"playlist": None}

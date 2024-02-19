@@ -1,8 +1,5 @@
 import asyncio
 import json
-import random
-
-import requests
 
 from globals.globals import GlobalVal
 

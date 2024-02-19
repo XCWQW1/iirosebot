@@ -1,5 +1,6 @@
 import json
 import subprocess
+import time
 from enum import Enum
 
 from loguru import logger
@@ -12,6 +13,9 @@ from API.api_get_config import get_user_color
 from globals.globals import GlobalVal
 from API.api_load_config import load_config
 from ws_iirose.transfer_plugin import MessageType
+
+
+bot_name, _, _ = load_config()
 
 
 class PlatformType(Enum):
@@ -37,8 +41,9 @@ class APIIirose:
         """
         if color is None:
             color = get_user_color()
-        await GlobalVal.websocket.send(json.dumps({"m": msg, "mc": str(color), "i": str(random.random())[2:14]}))
-        return {"code": 200}
+        msg_id = str(random.random())[2:14]
+        await GlobalVal.websocket.send(json.dumps({"m": msg, "mc": str(color), "i": msg_id}))
+        logger.info(f'[消息|房间|发送] {bot_name}：{msg} ({msg_id})')
 
     @staticmethod
     async def send_msg_to_private(msg: str, user_id: str, color: str = None):
@@ -51,8 +56,10 @@ class APIIirose:
         """
         if color is None:
             color = get_user_color()
-        await GlobalVal.websocket.send(json.dumps({"g": user_id, "m": msg, "mc": str(color), "i": str(random.random())[2:14]}))
-        return {"code": 200}
+        msg_id = str(random.random())[2:14]
+        await GlobalVal.websocket.send(
+            json.dumps({"g": user_id, "m": msg, "mc": str(color), "i": msg_id}))
+        logger.info(f'[消息|私聊|发送] {bot_name}：{msg} ({msg_id}) => {user_id}')
 
     @staticmethod
     async def send_msg_to_danmu(msg: str, color: str = None):
@@ -65,7 +72,7 @@ class APIIirose:
         if color is None:
             color = get_user_color()
         await GlobalVal.websocket.send('~' + json.dumps({"t": msg, "c": str(color)}))
-        return {"code": 200}
+        logger.info(f'[消息|弹幕|发送] {bot_name}：{msg}')
 
     @staticmethod
     async def send_msg(data, msg: str, color: str = None):
@@ -85,8 +92,7 @@ class APIIirose:
         elif data.type == MessageType.danmu:
             await APIIirose.send_msg_to_danmu(msg, str(color))
         else:
-            return {"code": 404, "error": "未知的类型"}
-        return {"code": 200}
+            raise "未知的类型"
 
     @staticmethod
     async def replay_msg(data, msg: str, color: str = None):
@@ -101,7 +107,6 @@ class APIIirose:
             color = get_user_color()
 
         await GlobalVal.websocket.send(json.dumps({"m": f"{data.message} (_hr) {data.user_name}_{data.timestamp} (hr_) {msg}", "mc": str(color), "i": str(random.random())[2:14]}))
-        return {"code": 200}
 
     @staticmethod
     async def move_room(room_id: str, password: str = None):
@@ -121,7 +126,7 @@ class APIIirose:
             c_room_id = GlobalVal.room_id
         if room_id == c_room_id:
             logger.error('移动房间失败，原因：目标访问为当前所在房间')
-            return {"code": 500, "error": "移动房间失败，原因：目标访问为当前所在房间"}
+            raise "移动房间失败，原因：目标访问为当前所在房间"
         GlobalVal.room_id = room_id
         GlobalVal.move_room = True
         if password is not None:
@@ -146,23 +151,23 @@ class APIIirose:
 
             response = requests.post('https://xc.null.red:8043/XCimg/upload_cache', files=files)
         except AttributeError:
-            return {"code": 404, "error": "错误，获取不到文件", "url": None}
+            raise "错误，获取不到文件"
         except:
             import traceback
             traceback.print_exc()
-            return {"code": 404, "error": "错误，访问接口失败", "url": None}
+            raise "错误，访问接口失败"
         if response.status_code == 200:
-            return {"code": 200, "url": f'https://xc.null.red:8043/XCimg/img/{response.text}'}
+            return {"url": f'https://xc.null.red:8043/XCimg/img/{response.text}'}
 
     @staticmethod
-    async def like(user_id: str, message: str = ''):
+    async def like(user_id: str, message: str = None):
         """
         给某人点赞
         :param message:  点赞的备注 可不写
         :param user_id:  目标人物唯一标识
         :return:
         """
-        await GlobalVal.websocket.send(f'+*{user_id} {message}')
+        await GlobalVal.websocket.send(f'+*{user_id}{"" if message is None else " " + message}')
         return {"code": 200}
 
     @staticmethod
@@ -212,8 +217,7 @@ class APIIirose:
                 media_data = json.loads(output)
                 duration = float(media_data['format']['duration'])
             except:
-                return {"code": 403,
-                        "error": "无法访问到媒体或无法调用ffprobe,请检查媒体是否正确以及ffmpeg是否安装并且环境变量配置正确"}
+                raise "无法访问到媒体或无法调用ffprobe,请检查媒体是否正确以及ffmpeg是否安装并且环境变量配置正确"
         else:
             duration = media_time
         if platform_type == PlatformType.netease:
@@ -325,17 +329,15 @@ class APIIirose:
 
         await GlobalVal.websocket.send(media_type + json.dumps(media_json, ensure_ascii=False))
 
-        return {"code": 200, 'duration': float(duration)}
+        return {'duration': float(duration)}
 
     @staticmethod
     async def stop_media(text: str = 'cut'):
         await GlobalVal.websocket.send('{0' + json.dumps({"m": text, "mc": "0", "i": str(random.random())[2:14]}))
-        return {"code": 200}
 
     @staticmethod
     async def revoke_message(message_id: str):
         await GlobalVal.websocket.send(f'v0#{message_id}')
-        return {"code": 200}
 
     @staticmethod
     async def update_share():
@@ -364,3 +366,18 @@ class APIIirose:
             return data
         except:
             return None
+
+    @staticmethod
+    async def get_playlist():
+        await GlobalVal.websocket.send("%")
+        for _ in range(20):
+            data = GlobalVal.message_data['playlist']
+            if data is not None:
+                GlobalVal.message_data['playlist'] = None
+                return data
+            time.sleep(0.01)
+        raise "获取歌单失败，原因：超时"
+
+    @staticmethod
+    async def send_notice(message: str):
+        await GlobalVal.websocket.send(f'!!["{message}"]')
