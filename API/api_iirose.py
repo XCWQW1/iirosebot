@@ -251,7 +251,7 @@ class APIIirose:
             card_json = {
                 "m": f"m__4*3"
                      f">{media_name}>{media_auther}"
-                     f">{media_pic}",
+                     f">{media_pic}>{color}>>{media_br}>>{media_time}",
                 "mc": color,
                 "i": str(random.random())[2:14]
             }
@@ -303,6 +303,15 @@ class APIIirose:
                 "o": f's://www.kugou.com/song/#hash={music_song_id}',
                 "l": media_lrc
             }
+        elif platform_type == PlatformType.bilibili_video:
+            media_json = {
+                "s": media_url,
+                "d": duration,
+                "c": media_pic,
+                "n": media_name,
+                "r": media_auther,
+                "b": f"!3"
+            }
         elif platform_type == PlatformType.no_platform:
             media_json = {
                 "s": media_url,
@@ -332,8 +341,10 @@ class APIIirose:
         return {'duration': float(duration)}
 
     @staticmethod
-    async def stop_media(text: str = 'cut'):
-        await GlobalVal.websocket.send('{0' + json.dumps({"m": text, "mc": "0", "i": str(random.random())[2:14]}))
+    async def stop_media(text: str = 'cut', color: str = None):
+        if color is None:
+            color = get_user_color()
+        await GlobalVal.websocket.send('{0' + json.dumps({"m": text, "mc": color, "i": str(random.random())[2:14]}))
 
     @staticmethod
     async def revoke_message(message_id: str):
