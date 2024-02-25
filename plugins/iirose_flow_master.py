@@ -1,12 +1,18 @@
+import re
+
 from API.api_get_config import get_master_id
 from API.api_iirose import APIIirose
 from API.api_load_config import load_config
-from API.api_message import parse_room_id, at_user
+from API.api_message import at_user
 from API.decorator.command import on_command, MessageType
 from globals.globals import GlobalVal
 
 API = APIIirose()
 move_to_master_bool = False
+
+
+def parse_room_id(room_text: str) -> str:
+    return re.findall(r"_([^_]+)_", room_text)[0].replace(" ", "")
 
 
 @on_command('移动到 ', [True, 4], command_type=[MessageType.room_chat, MessageType.private_chat])
