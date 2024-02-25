@@ -1,13 +1,13 @@
 import re
 
 
-def at_user(user_id: str) -> str:
+def at_user(user_name: str) -> str:
     """
     艾特用户
-    :param user_id:  用户的唯一标识
+    :param user_name:  用户名
     :return:
     """
-    return f" [*{user_id}*] "
+    return f" [*{user_name}*] "
 
 
 def room_address(room_id: str) -> str:
