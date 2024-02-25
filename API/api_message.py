@@ -1,13 +1,10 @@
-import re
-
-
-def at_user(user_id: str) -> str:
+def at_user(user_name: str) -> str:
     """
     艾特用户
-    :param user_id:  用户的唯一标识
+    :param user_name:  用户名
     :return:
     """
-    return f" [*{user_id}*] "
+    return f" [*{user_name}*] "
 
 
 def room_address(room_id: str) -> str:
@@ -36,8 +33,3 @@ def send_markdown_code(code: str, lang: str = '') -> str:
     :return:
     """
     return f"\\\\\\*\n```{lang}\n{code}\n```"
-
-
-def parse_room_id(room_text: str) -> str:
-    # 输入房间消息解析出房间表示
-    return re.findall(r"_([^_]+)_", room_text)[0].replace(" ", "")
