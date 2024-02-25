@@ -1,6 +1,3 @@
-import re
-
-
 def at_user(user_name: str) -> str:
     """
     艾特用户
@@ -36,8 +33,3 @@ def send_markdown_code(code: str, lang: str = '') -> str:
     :return:
     """
     return f"\\\\\\*\n```{lang}\n{code}\n```"
-
-
-def parse_room_id(room_text: str) -> str:
-    # 输入房间消息解析出房间表示
-    return re.findall(r"_([^_]+)_", room_text)[0].replace(" ", "")

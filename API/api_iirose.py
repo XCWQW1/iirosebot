@@ -18,6 +18,11 @@ from ws_iirose.transfer_plugin import MessageType
 bot_name, _, _ = load_config()
 
 
+class ApiError(Exception):
+    pass
+
+
+
 class PlatformType(Enum):
     no_platform = 0
     netease = 1
@@ -92,7 +97,7 @@ class APIIirose:
         elif data.type == MessageType.danmu:
             await APIIirose.send_msg_to_danmu(msg, str(color))
         else:
-            raise "未知的类型"
+            raise ApiError("未知的类型")
 
     @staticmethod
     async def replay_msg(data, msg: str, color: str = None):
@@ -126,7 +131,7 @@ class APIIirose:
             c_room_id = GlobalVal.room_id
         if room_id == c_room_id:
             logger.error('移动房间失败，原因：目标访问为当前所在房间')
-            raise "移动房间失败，原因：目标访问为当前所在房间"
+            raise ApiError("移动房间失败，原因：目标访问为当前所在房间")
         GlobalVal.room_id = room_id
         GlobalVal.move_room = True
         if password is not None:
@@ -151,11 +156,11 @@ class APIIirose:
 
             response = requests.post('https://xc.null.red:8043/XCimg/upload_cache', files=files)
         except AttributeError:
-            raise "错误，获取不到文件"
+            raise ApiError("错误，获取不到文件")
         except:
             import traceback
             traceback.print_exc()
-            raise "错误，访问接口失败"
+            raise ApiError("错误，访问接口失败")
         if response.status_code == 200:
             return {"url": f'https://xc.null.red:8043/XCimg/img/{response.text}'}
 
@@ -217,7 +222,7 @@ class APIIirose:
                 media_data = json.loads(output)
                 duration = float(media_data['format']['duration'])
             except:
-                raise "无法访问到媒体或无法调用ffprobe,请检查媒体是否正确以及ffmpeg是否安装并且环境变量配置正确"
+                raise ApiError("无法访问到媒体或无法调用ffprobe,请检查媒体是否正确以及ffmpeg是否安装并且环境变量配置正确")
         else:
             duration = media_time
         if platform_type == PlatformType.netease:
@@ -387,7 +392,7 @@ class APIIirose:
                 GlobalVal.message_data['playlist'] = None
                 return data
             time.sleep(0.01)
-        raise "获取歌单失败，原因：超时"
+        raise ApiError("获取歌单失败，原因：超时")
 
     @staticmethod
     async def send_notice(message: str):
