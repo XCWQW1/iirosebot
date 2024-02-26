@@ -602,7 +602,7 @@ async def process_message(data, websocket):
                                 del function_records[func][com_list]['func_name']
                                 continue
                             if function_records[func][com_list]['substring_bool']:
-                                if len(Message.message) > function_records[func][com_list]['substring_num'] and Message.message[:function_records[func][com_list]['substring_num']] == str(function_records[func][com_list]['command']):
+                                if len(Message.message) > function_records[func][com_list]['substring_num'] and str(Message.message[:function_records[func][com_list]['substring_num']]).startswith(str(function_records[func][com_list]['command'])):
                                     try:
                                         if Message.type in function_records[func][com_list]['command_type']:
                                             await plugin_transfer(plugin_list_remake[func]['def'][function_records[func][com_list]['func_name']], (Message, Message.message.split(function_records[func][com_list]['command'])[1]),True)

@@ -121,8 +121,8 @@ class APIIirose:
         :param password: 目标房间密码，目标房间有密码的情况下需带此参数
         :return:
         """
-        password = html.escape(password)
         if password is not None:
+            password = html.escape(password)
             GlobalVal.room_password = password
             await GlobalVal.websocket.send(f'=^~{room_id}>{password}')
         GlobalVal.old_room_id = GlobalVal.now_room_id
