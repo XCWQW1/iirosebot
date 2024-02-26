@@ -227,57 +227,6 @@ class APIIirose:
         else:
             duration = media_time
 
-        media_name = html.escape(media_name)
-        media_auther = html.escape(media_auther)
-        media_url = html.escape(media_url)
-        color = html.escape(color)
-
-        if platform_type == PlatformType.netease:
-            card_json = {
-                "m": f"m__4@0"
-                     f">{media_name}>{media_auther}"
-                     f">{media_pic}"
-                     f">0c0a15>{media_br}",
-                "mc": color,
-                "i": str(random.random())[2:14]
-            }
-        elif platform_type == PlatformType.qq:
-            card_json = {
-                "m": f"m__4@2"
-                     f">{media_name}>{media_auther}"
-                     f">{media_pic}"
-                     f">0c0a15>{media_br}",
-                "mc": color,
-                "i": str(random.random())[2:14]
-            }
-        elif platform_type == PlatformType.kugou:
-            card_json = {
-                "m": f"m__4@4"
-                     f">{media_name}>{media_auther}"
-                     f">{media_pic}"
-                     f">0c0a15>{media_br}",
-                "mc": color,
-                "i": str(random.random())[2:14]
-            }
-        elif platform_type == PlatformType.bilibili_video:
-            card_json = {
-                "m": f"m__4*3"
-                     f">{media_name}>{media_auther}"
-                     f">{media_pic}>{color}>>{media_br}>>{media_time}",
-                "mc": color,
-                "i": str(random.random())[2:14]
-            }
-        elif platform_type == PlatformType.no_platform:
-            card_json = {
-                "m": f"m__4={media_type}"
-                     f">{media_name}>{media_auther}"
-                     f">{media_pic}",
-                "mc": color,
-                "i": str(random.random())[2:14]
-            }
-        else:
-            raise ApiError('不支持的平台')
-
         if media_url.startswith("http"):
             media_url = media_url[4:]
 
@@ -335,6 +284,57 @@ class APIIirose:
                 "r": media_auther,
                 "b": f"={media_type}"
             }
+
+        media_name = html.escape(media_name)
+        media_auther = html.escape(media_auther)
+        media_url = html.escape(media_url)
+        color = html.escape(color)
+
+        if platform_type == PlatformType.netease:
+            card_json = {
+                "m": f"m__4@0"
+                     f">{media_name}>{media_auther}"
+                     f">{media_pic}"
+                     f">0c0a15>{media_br}",
+                "mc": color,
+                "i": str(random.random())[2:14]
+            }
+        elif platform_type == PlatformType.qq:
+            card_json = {
+                "m": f"m__4@2"
+                     f">{media_name}>{media_auther}"
+                     f">{media_pic}"
+                     f">0c0a15>{media_br}",
+                "mc": color,
+                "i": str(random.random())[2:14]
+            }
+        elif platform_type == PlatformType.kugou:
+            card_json = {
+                "m": f"m__4@4"
+                     f">{media_name}>{media_auther}"
+                     f">{media_pic}"
+                     f">0c0a15>{media_br}",
+                "mc": color,
+                "i": str(random.random())[2:14]
+            }
+        elif platform_type == PlatformType.bilibili_video:
+            card_json = {
+                "m": f"m__4*3"
+                     f">{media_name}>{media_auther}"
+                     f">{media_pic}>{color}>>{media_br}>>{media_time}",
+                "mc": color,
+                "i": str(random.random())[2:14]
+            }
+        elif platform_type == PlatformType.no_platform:
+            card_json = {
+                "m": f"m__4={media_type}"
+                     f">{media_name}>{media_auther}"
+                     f">{media_pic}",
+                "mc": color,
+                "i": str(random.random())[2:14]
+            }
+        else:
+            raise ApiError('不支持的平台')
 
         if send_card:
             await GlobalVal.websocket.send(json.dumps(card_json))
