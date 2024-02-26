@@ -404,7 +404,7 @@ async def process_message(data, websocket):
                                 media_auther = msg[2]
                                 media_pic = msg[3]
 
-                            logger.info(f'[事件|媒体|点播] {Message.user_name} 点播来自 {Media.media_auther} 的 {Media.media_name}')
+                            logger.info(f'[事件|媒体|卡片] {Message.user_name} 发送媒体卡片，来自 {Media.media_auther} 的 {Media.media_name}')
                             await plugin_transfer('play_media', (Message, Media))
                             continue
 
@@ -531,13 +531,13 @@ async def process_message(data, websocket):
                         iirose_media_url = iirose_url[2:]
                     return iirose_media_url
 
-                if msg[5] == '2':
+                if msg[3].startswith('!') or msg[3].startswith('=1'):
                     # video
                     class Message:
                         type = MessageType.media_video
                         play_user = msg[4]
                         media_name = msg[2][:-2]
-                        media_auther = msg[3]
+                        media_auther = msg[3][2:]
                         media_url = iirose_url_parse(msg[0])
                         media_pic_url = iirose_url_parse(msg[6])
                         media_time = msg[1]
@@ -547,14 +547,14 @@ async def process_message(data, websocket):
                     await plugin_transfer('media_message', Message)
                     continue
 
-                if msg[5] == '1':
+                if msg[3].startswith('@') or msg[3].startswith('=0'):
                     # music
                     class Message:
                         type = MessageType.media_music
                         play_user = msg[4]
                         media_name = msg[2]
                         media_auther = msg[3][2:]
-                        media_url = iirose_url_parse(msg[0])
+                        media_url = iirose_url_parse(msg[0].split(' ')[0])
                         media_pic_url = iirose_url_parse(msg[6])
                         media_time = msg[1]
 
@@ -602,26 +602,19 @@ async def process_message(data, websocket):
                                 del function_records[func][com_list]['func_name']
                                 continue
                             if function_records[func][com_list]['substring_bool']:
-                                if len(Message.message) > function_records[func][com_list][
-                                    'substring_num'] and Message.message[
-                                                         :function_records[func][com_list]['substring_num']] == str(function_records[func][com_list]['command']):
+                                if len(Message.message) > function_records[func][com_list]['substring_num'] and Message.message[:function_records[func][com_list]['substring_num']] == str(function_records[func][com_list]['command']):
                                     try:
                                         if Message.type in function_records[func][com_list]['command_type']:
-                                            await plugin_transfer(
-                                                plugin_list_remake[func]['def'][function_records[func][com_list]['func_name']], (Message, Message.message.split(function_records[func][com_list]['command'])[1]),
-                                                True
-                                            )
+                                            await plugin_transfer(plugin_list_remake[func]['def'][function_records[func][com_list]['func_name']], (Message, Message.message.split(function_records[func][com_list]['command'])[1]),True)
                                     except:
-                                        logger.error(
-                                            f'调用已注册 {function_records[func][com_list]["command"]} 指令报错：{traceback.format_exc()}')
+                                        logger.error(f'调用已注册 {function_records[func][com_list]["command"]} 指令报错：{traceback.format_exc()}')
                             else:
                                 if Message.message == str(function_records[func][com_list]['command']):
                                     try:
                                         if Message.type in function_records[func][com_list]['command_type']:
                                             await plugin_transfer(plugin_list_remake[func]['def'][function_records[func][com_list]['func_name']], Message, True)
                                     except:
-                                        logger.error(
-                                            f'调用已注册 {function_records[func][com_list]["command"]} 指令报错：{traceback.format_exc()}')
+                                        logger.error(f'调用已注册 {function_records[func][com_list]["command"]} 指令报错：{traceback.format_exc()}')
                 continue
 
         logger.info(f'[未知] {data}')
