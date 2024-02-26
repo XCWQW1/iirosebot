@@ -1,6 +1,7 @@
 import json
 import subprocess
 import time
+import html
 from enum import Enum
 
 from loguru import logger
@@ -20,7 +21,6 @@ bot_name, _, _ = load_config()
 
 class ApiError(Exception):
     pass
-
 
 
 class PlatformType(Enum):
@@ -121,6 +121,7 @@ class APIIirose:
         :param password: 目标房间密码，目标房间有密码的情况下需带此参数
         :return:
         """
+        password = html.escape(password)
         if password is not None:
             GlobalVal.room_password = password
             await GlobalVal.websocket.send(f'=^~{room_id}>{password}')
@@ -225,6 +226,12 @@ class APIIirose:
                 raise ApiError("无法访问到媒体或无法调用ffprobe,请检查媒体是否正确以及ffmpeg是否安装并且环境变量配置正确")
         else:
             duration = media_time
+
+        media_name = html.escape(media_name)
+        media_auther = html.escape(media_auther)
+        media_url = html.escape(media_url)
+        color = html.escape(color)
+
         if platform_type == PlatformType.netease:
             card_json = {
                 "m": f"m__4@0"
@@ -268,6 +275,8 @@ class APIIirose:
                 "mc": color,
                 "i": str(random.random())[2:14]
             }
+        else:
+            raise ApiError('不支持的平台')
 
         if media_url.startswith("http"):
             media_url = media_url[4:]
