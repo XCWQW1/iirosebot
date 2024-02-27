@@ -28,7 +28,8 @@ async def login_to_server(websocket):
         "st": 'n',
         "mo": '',
         "mb": '',
-        "mu": '01'
+        "mu": '01',
+        'fp': f'@{md5_encrypt(bot_name)}'
     }
 
     if GlobalVal.move_room:

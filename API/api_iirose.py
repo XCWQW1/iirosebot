@@ -159,8 +159,6 @@ class APIIirose:
         except AttributeError:
             raise ApiError("错误，获取不到文件")
         except:
-            import traceback
-            traceback.print_exc()
             raise ApiError("错误，访问接口失败")
         if response.status_code == 200:
             return {"url": f'https://xc.null.red:8043/XCimg/img/{response.text}'}
