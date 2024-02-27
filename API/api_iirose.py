@@ -287,6 +287,7 @@ class APIIirose:
         media_auther = html.escape(media_auther)
         media_url = html.escape(media_url)
         color = html.escape(color)
+        media_pic = 'http' + media_pic
 
         if platform_type == PlatformType.netease:
             card_json = {
