@@ -22,7 +22,8 @@ async def create_config_file(config_path):
             'room_id': '5ce6a4b520a90',
             'username': '',
             'password': '',
-            'color': '040b02'
+            'color': '040b02',
+            'introduction': ''
         },
         'other': {
             'master_id': '',
