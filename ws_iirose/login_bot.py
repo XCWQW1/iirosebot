@@ -1,6 +1,7 @@
 import asyncio
 import json
 
+from API.api_get_config import get_introduction
 from globals.globals import GlobalVal
 
 from loguru import logger
@@ -26,7 +27,7 @@ async def login_to_server(websocket):
         "n": bot_name,
         "p": md5_encrypt(bot_password),
         "st": 'n',
-        "mo": '',
+        "mo": str(get_introduction()),
         "mb": '',
         "mu": '01',
         'fp': f'@{md5_encrypt(bot_name)}'

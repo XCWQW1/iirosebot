@@ -37,3 +37,14 @@ def get_log_level() -> str:
         level = 'INFO'
 
     return level
+
+
+def get_introduction() -> str:
+    try:
+        with open(config_path, 'r') as file:
+            config = yaml.safe_load(file)
+        introduction = str(config["bot"]["introduction"])
+    except:
+        introduction = ''
+
+    return introduction
