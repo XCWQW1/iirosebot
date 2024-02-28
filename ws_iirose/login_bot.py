@@ -22,6 +22,9 @@ async def login_to_server(websocket):
     if GlobalVal.now_room_id is None:
         GlobalVal.now_room_id = room_id
 
+    with open("config/room.json", 'r') as file:
+        room_config = json.load(file)
+
     login_json = {
         "r": room_id,
         "n": bot_name,
@@ -37,7 +40,14 @@ async def login_to_server(websocket):
         login_json['lr'] = GlobalVal.old_room_id
         if GlobalVal.room_password is not None:
             login_json['rp'] = GlobalVal.room_password
+            room_config[room_id] = GlobalVal.room_password
+            with open("config/room.json", 'w') as file:
+                json.dump(room_config, file, indent=4, ensure_ascii=False)
         GlobalVal.move_room = False
+
+    if room_id in room_config:
+        login_json['rp'] = room_config[room_id]
+
     await websocket.send('*' + json.dumps(login_json))
     logger.info('已发送登陆信息')
     await asyncio.sleep(2)

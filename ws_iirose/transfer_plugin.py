@@ -241,30 +241,36 @@ async def process_message(data, websocket):
         if data[:3] == '%*"':
             try:
                 error_code = int(data[3:])
-                if error_code == 0:
-                    logger.error('登陆失败：名字被占用')
-                elif error_code == 1:
-                    logger.error('登陆失败：用户不存在')
-                elif error_code == 2:
-                    logger.error('登陆失败：密码错误')
-                elif error_code == 5:
-                    logger.error('登陆失败：房间密码错误')
-                    GlobalVal.now_room_id = GlobalVal.old_room_id
-                    GlobalVal.room_id = GlobalVal.old_room_id
-                    await GlobalVal.websocket.close()
-                    return
-                elif type(error_code) == int:
-                    logger.error(f'登陆失败：未知错误代码：{error_code}，可能今日登陆次数到达上限')
-                logger.error("已关闭程序，请检查配置文件")
-                logger.info('框架已关闭')
-                pid = os.getpid()
-                if sys.platform == 'win32':
-                    os.kill(pid, signal.CTRL_C_EVENT)
-                else:
-                    os.kill(pid, signal.SIGKILL)
-                sys.exit(0)
             except:
-                pass
+                if not data[3:].startswith('x'):
+                    return
+                error_code = 403
+            if error_code == 0:
+                logger.error('登录失败：名字被占用')
+            elif error_code == 1:
+                logger.error('登录失败：用户不存在')
+            elif error_code == 2:
+                logger.error('登录失败：密码错误')
+            elif error_code == 4:
+                logger.error('登录失败：今日可尝试登录次数达到上限')
+            elif error_code == 403:
+                logger.error('登录失败：该账户封禁中')
+            elif error_code == 5:
+                logger.error('登录失败：房间密码错误')
+                GlobalVal.now_room_id = GlobalVal.old_room_id
+                GlobalVal.room_id = GlobalVal.old_room_id
+                await GlobalVal.websocket.close()
+                return
+            elif type(error_code) == int:
+                logger.error(f'登录失败：未知错误代码：{error_code}')
+            logger.error("已关闭程序，请检查配置文件")
+            logger.info('框架已关闭')
+            pid = os.getpid()
+            if sys.platform == 'win32':
+                os.kill(pid, signal.CTRL_C_EVENT)
+            else:
+                os.kill(pid, signal.SIGKILL)
+            sys.exit(0)
 
     if len(split_list) <= 1:
         for i in split_list:

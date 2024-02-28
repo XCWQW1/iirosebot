@@ -37,10 +37,16 @@ async def create_config_file(config_path):
     logger.warning(f'配置文件 {config_path} 不存在，已自动创建')
 
 
+async def create_room_config_file(config_path):
+    with open(config_path, "w", encoding='utf-8') as f:
+        f.write('{}')
+    logger.warning(f'配置文件 {config_path} 不存在，已自动创建')
+
+
 async def main_init():
     folders = ['plugins', 'logs', 'config']
 
-    logger.info("正在监测配置文件夹是否存在")
+    logger.info("正在检测配置文件夹是否存在")
 
     tasks = []
     for folder in folders:
@@ -48,9 +54,17 @@ async def main_init():
 
     await asyncio.gather(*tasks)
 
+    logger.info("正在检测配置文件是否存在")
     config_path = "config/config.yml"
 
     if not os.path.exists(config_path):
         await create_config_file(config_path)
+    else:
+        logger.info(f'配置文件 {config_path} 已经存在')
+
+    config_path = "config/room.json"
+
+    if not os.path.exists(config_path):
+        await create_room_config_file(config_path)
     else:
         logger.info(f'配置文件 {config_path} 已经存在')

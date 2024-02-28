@@ -125,6 +125,11 @@ class APIIirose:
             password = html.escape(password)
             GlobalVal.room_password = password
             await GlobalVal.websocket.send(f'=^~{room_id}>{password}')
+        else:
+            with open("config/room.json", 'r') as file:
+                room_config = json.load(file)
+            if room_id in room_config:
+                password = room_config[room_id]
         GlobalVal.old_room_id = GlobalVal.now_room_id
         if GlobalVal.room_id is None:
             _, c_room_id, _ = load_config()
