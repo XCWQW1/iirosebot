@@ -84,6 +84,48 @@ async def pares_big(data):
                         "status": user_data[11]
                     }
                     continue
+                else:
+                    if len(user_data) != 14:
+                        continue
+
+                    user_pic = user_data[0]
+                    user_sex = user_data[1]
+                    user_name = user_data[2]
+                    user_color = user_data[3]
+                    user_id = user_data[8]
+                    user_introduction = user_data[6] if not user_data[6] == '' else None
+                    user_room_id = user_data[4]
+                    user_tag = i[12] if not user_data[12] == '' else None
+                    user_online_time = user_data[13].replace("'", '')
+                    user_private_chat_background_image = user_data[10] if not user_data[10] == '' else None
+                    user_status = user_data[11]
+
+                    if user_online_time == '':
+                        user_online_time = 0
+                    else:
+                        user_online_time = int(re.sub(r"\D", "", user_online_time))
+
+                    if user_status == '':
+                        user_status = 0
+                    elif user_status == 'a':
+                        user_status = 12
+                    elif user_status == '*':
+                        user_status = 11
+
+                    user_data_json[user_id] = {
+                        "id": user_id,
+                        "name": user_name,
+                        "pic": 'https://static.codemao.cn/rose/v0/images/icon/' + user_data[0] if user_data[0][-4:] == '.png' else 'https://static.codemao.cn/rose/v0/images/icon/' + user_data[0] + '.jpg',
+                        "sex": user_sex,
+                        "color": user_color,
+                        "introduction": user_introduction,
+                        "room_id": user_room_id,
+                        "tag": user_tag,
+                        "online_time": user_online_time,
+                        "private_chat_background_image": user_private_chat_background_image,
+                        "status": user_status
+                    }
+                    continue
             if match:
                 room_data = i.split(">")
                 if len(room_data) == 8:
