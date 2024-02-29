@@ -322,10 +322,13 @@ class APIIirose:
                 "i": str(random.random())[2:14]
             }
         elif platform_type == PlatformType.bilibili_video:
+            minutes = int(media_time) // 60
+            seconds = int(media_time) % 60
+            time_format = f"{minutes}:{seconds:02d}"
             card_json = {
                 "m": f"m__4*3"
                      f">{media_name}>{media_auther}"
-                     f">{media_pic}>{color}>>{media_br}>>{media_time}",
+                     f">{media_pic}>{color}>>{media_br}>>{time_format}",
                 "mc": color,
                 "i": str(random.random())[2:14]
             }

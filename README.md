@@ -42,16 +42,20 @@
   打开 config>config.yml 文件
   ```yaml
   bot:
-    color: 040b02  # 机器人消息颜色
-    password: ''  # 机器人账户的密码
-    room_id: 5ce6a4b520a90  # 机器人登陆后进入的房间id
-    username: ''  # 机器人用户名 改名后需修改这里
+  color: ffffff # 机器人消息颜色
+  introduction: '' # 机器人签名
+  password: '' # 机器人账户的密码
+  room_id: 5ce6a4b520a90  # 机器人登陆后进入的房间id
+  username: ''  # 机器人用户名 改名后需修改这里
+  log:
+    level: INFO # 日志等级，一般不用改
   other:
     master_id: ''  # 主人唯一标识
   ```
   
-- ### 6, 编写插件 （可选）
+- ### 6, 编写\安装插件 （可选）
 	>示例的插件 iirose_example.py iirose_flow_master.py
+    也可以到[插件仓库](https://github.com/XCWQW1/iirosebot-plugins/blob/main/README.md)里面寻找您喜欢的插件
 
 - ### 7, 启动
   >第一次运行会停止1次要求重启，用于初始化配置文件等
@@ -60,7 +64,8 @@
 
 - ### 8, 调试
   >可以私聊机器人发送 `.插件` 获取插件管理菜单，提示无权请检查配置文件中的主人标识是否正确
-  ### 感谢使用
+  
+  ### 感谢您的使用
 
 </details>
 
