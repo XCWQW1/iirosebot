@@ -1,18 +1,18 @@
+import io
 import json
-import subprocess
 import time
 import html
-from enum import Enum
-
-from loguru import logger
 import random
-from typing import Union
-
 import requests
+import subprocess
 
-from API.api_get_config import get_user_color
+from enum import Enum
+from typing import Union
+from loguru import logger
+
 from globals.globals import GlobalVal
 from API.api_load_config import load_config
+from API.api_get_config import get_user_color
 from ws_iirose.transfer_plugin import MessageType
 
 
@@ -209,7 +209,20 @@ class APIIirose:
         :return:
         """
         if color is None:
-            color = get_user_color()
+            if media_pic:
+                try:
+                    from PIL import Image
+                    import numpy as np
+                    response = requests.get(media_pic, timeout=5)
+                    image = Image.open(io.BytesIO(response.content))
+                    image = image.convert("RGB")
+                    pixels = np.array(image)
+                    avg_color = tuple(map(int, np.mean(pixels, axis=(0, 1))))
+                    color = '{:02x}{:02x}{:02x}'.format(*avg_color)
+                except:
+                    color = get_user_color()
+            else:
+                color = get_user_color()
 
         if media_type:
             # music
@@ -299,7 +312,7 @@ class APIIirose:
                 "m": f"m__4@0"
                      f">{media_name}>{media_auther}"
                      f">{media_pic}"
-                     f">0c0a15>{media_br}",
+                     f">{color}>{media_br}",
                 "mc": color,
                 "i": str(random.random())[2:14]
             }
@@ -308,7 +321,7 @@ class APIIirose:
                 "m": f"m__4@2"
                      f">{media_name}>{media_auther}"
                      f">{media_pic}"
-                     f">0c0a15>{media_br}",
+                     f">{color}>{media_br}",
                 "mc": color,
                 "i": str(random.random())[2:14]
             }
@@ -317,7 +330,7 @@ class APIIirose:
                 "m": f"m__4@4"
                      f">{media_name}>{media_auther}"
                      f">{media_pic}"
-                     f">0c0a15>{media_br}",
+                     f">{color}>{media_br}",
                 "mc": color,
                 "i": str(random.random())[2:14]
             }
