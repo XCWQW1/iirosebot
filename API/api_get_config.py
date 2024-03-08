@@ -7,7 +7,7 @@ config_path = "config/config.yml"
 
 
 def get_master_id() -> str:
-    with open(config_path, 'r') as file:
+    with open(config_path, 'r', encoding='utf-8') as file:
         config = yaml.safe_load(file)
 
     master_id = str(config["other"]["master_id"])
@@ -16,7 +16,7 @@ def get_master_id() -> str:
 
 
 def get_user_color() -> str:
-    with open(config_path, 'r') as file:
+    with open(config_path, 'r', encoding='utf-8') as file:
         config = yaml.safe_load(file)
 
     color = str(config["bot"]["color"])
@@ -30,7 +30,7 @@ def get_user_color() -> str:
 
 def get_log_level() -> str:
     try:
-        with open(config_path, 'r') as file:
+        with open(config_path, 'r', encoding='utf-8') as file:
             config = yaml.safe_load(file)
         level = str(config["log"]["level"])
     except:
@@ -41,7 +41,7 @@ def get_log_level() -> str:
 
 def get_introduction() -> str:
     try:
-        with open(config_path, 'r') as file:
+        with open(config_path, 'r', encoding='utf-8') as file:
             config = yaml.safe_load(file)
         introduction = str(config["bot"]["introduction"])
     except:
