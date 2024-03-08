@@ -4,7 +4,7 @@ import yaml
 def load_config() -> [str, str, str]:
     config_path = "config/config.yml"
 
-    with open(config_path, 'r') as file:
+    with open(config_path, 'r', encoding='utf-8') as file:
         config = yaml.safe_load(file)
 
     room_id = str(config['bot']['room_id'])

@@ -126,7 +126,7 @@ class APIIirose:
             GlobalVal.room_password = password
             await GlobalVal.websocket.send(f'=^~{room_id}>{password}')
         else:
-            with open("config/room.json", 'r') as file:
+            with open("config/room.json", 'r', encoding='utf-8') as file:
                 room_config = json.load(file)
             if room_id in room_config:
                 password = room_config[room_id]
@@ -180,18 +180,20 @@ class APIIirose:
         return {"code": 200}
 
     @staticmethod
-    async def play_media(media_type: bool,
-                         media_url: str,
-                         send_card: bool = True,
-                         platform_type: PlatformType = PlatformType.no_platform,
-                         media_name: str = '未知',
-                         media_auther: str = '未知',
-                         media_lrc: str = '未知',
-                         media_pic: str = 'https://static.codemao.cn/rose/v0/images/system/demandAlbumLarge.png',
-                         music_song_id: str = '',
-                         media_time: int = None,
-                         media_br=128,
-                         color: str = None):
+    async def play_media(
+            media_type: bool,
+            media_url: str,
+            send_card: bool = True,
+            platform_type: PlatformType = PlatformType.no_platform,
+            media_name: str = '未知',
+            media_auther: str = '未知',
+            media_lrc: str = '未知',
+            media_pic: str = 'https://static.codemao.cn/rose/v0/images/system/demandAlbumLarge.png',
+            music_song_id: str = '',
+            media_time: int = None,
+            media_br=128,
+            color: str = None
+    ):
         """
         播放媒体，需要依赖ffmpeg获取视频长度，为网易云音乐时可以通过music开头的几个变量自定义内容，如果提供了媒体时长可不依赖ffmpeg
         :param color: 媒体卡片的颜色
@@ -219,6 +221,9 @@ class APIIirose:
                     pixels = np.array(image)
                     avg_color = tuple(map(int, np.mean(pixels, axis=(0, 1))))
                     color = '{:02x}{:02x}{:02x}'.format(*avg_color)
+                except ModuleNotFoundError:
+                    logger.warning('媒体卡片颜色获取失败，依赖库缺失')
+                    color = get_user_color()
                 except:
                     color = get_user_color()
             else:
@@ -291,6 +296,15 @@ class APIIirose:
                 "r": media_auther,
                 "b": f"!3"
             }
+        elif platform_type == PlatformType.bilibili_live:
+            media_json = {
+                "s": media_url,
+                "d": duration,
+                "c": media_pic,
+                "n": media_name,
+                "r": media_auther,
+                "b": f"!8"
+            }
         elif platform_type == PlatformType.no_platform:
             media_json = {
                 "s": media_url,
@@ -340,6 +354,19 @@ class APIIirose:
             time_format = f"{minutes}:{seconds:02d}"
             card_json = {
                 "m": f"m__4*3"
+                     f">{media_name}>{media_auther}"
+                     f">{media_pic}>{color}>>{media_br}>>{time_format}",
+                "mc": color,
+                "i": str(random.random())[2:14]
+            }
+        elif platform_type == PlatformType.bilibili_live:
+            minutes = int(media_time) // 60
+            seconds = int(media_time) % 60
+            time_format = f"{minutes}:{seconds:02d}"
+            if media_br >= 10000:
+                media_br = str(media_br)[:1] + 'e4'
+            card_json = {
+                "m": f"m__4*8"
                      f">{media_name}>{media_auther}"
                      f">{media_pic}>{color}>>{media_br}>>{time_format}",
                 "mc": color,
