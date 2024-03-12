@@ -46,7 +46,7 @@
     introduction: '' # 机器人签名
     password: '' # 机器人账户的密码
     room_id: 5ce6a4b520a90  # 机器人登陆后进入的房间id
-  username: ''  # 机器人用户名 改名后需修改这里
+    username: ''  # 机器人用户名 改名后需修改这里
   log:
     level: INFO # 日志等级，一般不用改
   other:
