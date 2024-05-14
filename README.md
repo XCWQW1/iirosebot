@@ -128,3 +128,9 @@
     - [ ] 反向ws
 
 </details>
+
+---
+
+[![JetBrainsLogo](https://bluecolored.de/paste/jetbrains-variant-4.svg)](https://www.jetbrains.com/?from=BlueMap)<br>
+<br>
+感谢 [JetBrains](https://www.jetbrains.com/?from=BlueMap) 颁发了开源许可证!
