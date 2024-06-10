@@ -191,6 +191,7 @@ class APIIirose:
             media_pic: str = 'https://static.codemao.cn/rose/v0/images/system/demandAlbumLarge.png',
             music_song_id: str = '',
             media_time: int = None,
+            media_audio: str = None,
             media_br=128,
             color: str = None
     ):
@@ -208,6 +209,7 @@ class APIIirose:
         :param media_name: 音乐名称
         :param media_type:  媒体类型 True 为音频 False 为视频
         :param media_url:  媒体外链
+        :param media_audio:  媒体音频地址，仅在bilibili平台起作用，视频地址填入media_url
         :return:
         """
         if color is None:
@@ -248,8 +250,12 @@ class APIIirose:
         else:
             duration = media_time
 
-        if media_url.startswith("http"):
-            media_url = media_url[4:]
+        if not media_audio is None and platform_type == PlatformType.bilibili_video:
+            if media_url.startswith("http"):
+                media_url = media_url[4:] + "#audio=" + str(media_audio)
+        else:
+            if media_url.startswith("http"):
+                media_url = media_url[4:]
 
         if media_pic.startswith("http"):
             media_pic = media_pic[4:]
@@ -453,3 +459,27 @@ class APIIirose:
     @staticmethod
     async def send_notice(message: str):
         await GlobalVal.websocket.send(f'!!["{message}"]')
+
+
+class BaseStation:
+    def __int__(self):
+        pass
+
+    @staticmethod
+    async def send(packageName: str, user_id: dict or list or str, msg: str):
+        """
+        由基站向用户发送消息
+        :param packageName: 包名
+        :param user_id: 用户唯一标识，可输入数组或列表用于群发，也可以只输入字符串单独发送
+        :param msg: 要发送的内容
+        """
+        if type(user_id) is str:
+            logger.info(f'[基站|发送] 包名：{packageName}, 内容：{msg}，目标：{user_id}')
+            await GlobalVal.websocket.send("/<{}>{}:{}".format(packageName, user_id, msg))
+        else:
+            user_list = ""
+            for i in user_id:
+                user_list += i + ","
+            logger.info(f'[基站|发送] 包名：{packageName}, 内容：{msg}，目标：{user_list}')
+            await GlobalVal.websocket.send("/<{}>{}:{}".format(packageName, user_list[:-1], msg))
+
