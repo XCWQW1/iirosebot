@@ -19,6 +19,7 @@ API = APIIirose()
 gold = 0
 bot_name, _, _ = load_config()
 
+
 def escape(s, quote=True):
     s = s.replace("&", "&amp;")
     s = s.replace("<", "&lt;")
@@ -126,7 +127,10 @@ async def pares_big(data):
                     user_data_json[user_id] = {
                         "id": user_id,
                         "name": user_name,
-                        "pic": 'https://static.codemao.cn/rose/v0/images/icon/' + user_data[0] if user_data[0][-4:] == '.png' else 'https://static.codemao.cn/rose/v0/images/icon/' + user_data[0] + '.jpg',
+                        "pic": 'https://static.codemao.cn/rose/v0/images/icon/' + user_data[0] if user_data[0][
+                                                                                                  -4:] == '.png' else 'https://static.codemao.cn/rose/v0/images/icon/' +
+                                                                                                                      user_data[
+                                                                                                                          0] + '.jpg',
                         "sex": user_sex,
                         "color": user_color,
                         "introduction": user_introduction,
@@ -288,7 +292,10 @@ async def process_message(data, websocket):
     if data.startswith("~"):
         split_list = [escape(data)]
     else:
-        split_list = escape(data).split("<")
+        data_split = data.split("<")
+        split_list = []
+        for i in data_split:
+            split_list.append(escape(i))
 
     async def login_error(data):
         if data[:3] == '%*"':
@@ -360,6 +367,7 @@ async def process_message(data, websocket):
             await plugin_transfer('date_update')
 
     for data in reversed(msg_list):
+        logger.debug(f"[原始|消息]{data}")
         if data == 'm':
             logger.info(f'[事件|移动] 切换房间')
             await websocket.close()
@@ -370,13 +378,14 @@ async def process_message(data, websocket):
             if len(data) != 2:
                 continue
             data = [html.unescape(data[0]), html.unescape(data[1])]
-
             bs_packagename = data[0][2:]
             bs_data = data[1]
 
             class Data:
                 packagename = data[0][2:]
                 message = data[1]
+
+            logger.debug("[解析|消息]" + ", ".join(f"{k}={v}" for k, v in vars(Data).items() if not k.startswith('__')))
 
             logger.info(f"[基站|接收] 包名：{bs_packagename}, 内容：{bs_data}")
             await plugin_transfer('base_station_message', Data)
@@ -389,21 +398,39 @@ async def process_message(data, websocket):
                     pic = data[1]
                     timestamp = data[2]
 
+                logger.debug(f'[分割|消息]{data}')
+                logger.debug("[解析|消息]" + ", ".join(f"{k}={v}" for k, v in vars(Data).items() if not k.startswith('__')))
+
                 logger.info(f"[事件|通知|房间] 内容：{data[0][2:]}, 背景：http{data[1]}, 时间戳：{data[2]}")
                 await plugin_transfer('room_notice', Data)
                 continue
             if len(data) == 7:
-                class Data:
-                    user_name = data[0][2:]
-                    message = data[3][2:]
-                    background_pic = data[4]
-                    timestamp = data[5]
-                    color = data[6]
+                if data[3] == "'*":
+                    class Data:
+                        user_name = data[0][2:]
+                        message = data[3][2:]
+                        background_pic = data[4]
+                        timestamp = data[5]
+                        color = data[6]
 
-                logger.info(
-                    f"[事件|通知|点赞] 用户 {Data.user_name}{'' if Data.message == '' else '备注：' + Data.message}")
-                await plugin_transfer('self_like', Data)
-                continue
+                    logger.debug(f'[分割|消息]{data}')
+                    logger.debug("[解析|消息]" + ", ".join(f"{k}={v}" for k, v in vars(Data).items() if not k.startswith('__')))
+
+                    logger.info(f"[事件|通知|点赞] 用户 {Data.user_name}{'' if Data.message == '' else '备注：' + Data.message}")
+                    await plugin_transfer('self_like', Data)
+                    continue
+                elif data[3] == "'^":
+                    class Data:
+                        user_name = data[0][2:]
+                        background_pic = data[4]
+                        timestamp = data[5]
+                        color = data[6]
+
+                    logger.debug(f'[分割|消息]{data}')
+                    logger.debug("[解析|消息]" + ", ".join(f"{k}={v}" for k, v in vars(Data).items() if not k.startswith('__')))
+                    logger.info(f"[事件|通知|关注] 用户 {Data.user_name} 关注了您")
+                    await plugin_transfer('self_subscription', Data)
+                    continue
         elif data.startswith("~"):
             song_data = []
             if data != "~":
@@ -421,9 +448,17 @@ async def process_message(data, websocket):
                 await API.move_room(data[2:])
                 await websocket.close()
                 continue
+            elif data == '-k':
+                # 踢出房间
+                await API.move_room('5ce6a4b520a90')
+                logger.info(f'[事件|踢出|移动] 机器人被踢出房间，正在前往空间站')
+                await plugin_transfer('self_kick')
 
-            elif data.startswith("q"):
-                logger.info(f"")
+            elif data[:3] == 'm!m':
+                await GlobalVal.websocket.close()
+
+            #elif data.startswith("q"):
+            #    logger.info(f"")
 
             elif data == ',':
                 # 切媒体
@@ -443,6 +478,9 @@ async def process_message(data, websocket):
                     total_money = float(msg[1])
                     hold_share = float(msg[3]) if msg[3] != '' else 0
                     hold_money = float(msg[4])
+
+                logger.debug(f'[分割|消息]{msg}')
+                logger.debug("[解析|消息]" + ", ".join(f"{k}={v}" for k, v in vars(Data).items() if not k.startswith('__')))
 
                 if Data.price_share == 1.0:
                     logger.info(f'[事件|股票] 股票崩盘')
@@ -475,6 +513,9 @@ async def process_message(data, websocket):
                             is_bot = True if msg[9][:2] == "4'" else False
                             is_replay = False
 
+                        logger.debug(f'[分割|消息]{msg}')
+                        logger.debug("[解析|消息]" + ", ".join(f"{k}={v}" for k, v in vars(Message).items() if not k.startswith('__')))
+
                         if Message.user_name == bot_name:
                             continue
 
@@ -485,6 +526,9 @@ async def process_message(data, websocket):
                                 media_name = msg[1]
                                 media_auther = msg[2]
                                 media_pic = msg[3]
+
+                            logger.debug(f'[分割|消息]{msg}')
+                            logger.debug("[解析|消息]" + ", ".join(f"{k}={v}" for k, v in vars(Media).items() if not k.startswith('__')))
 
                             logger.info(
                                 f'[事件|媒体|卡片] {Message.user_name} 发送媒体卡片，来自 {Media.media_auther} 的 {Media.media_name}')
@@ -514,6 +558,9 @@ async def process_message(data, websocket):
                                 to_room_id = msg[11][1:]
                                 is_bot = True if msg[9][:2] == "4'" else False
 
+                            logger.debug(f'[分割|消息]{msg}')
+                            logger.debug("[解析|消息]" + ", ".join(f"{k}={v}" for k, v in vars(Message).items() if not k.startswith('__')))
+
                             logger.info(
                                 f'[事件|移动到其他房间] {Message.user_name}({Message.user_id}) => {Message.to_room_id}')
                             await plugin_transfer('user_move_room', Message)
@@ -530,6 +577,9 @@ async def process_message(data, websocket):
                                 color = msg[5]
                                 is_bot = True if msg[9][:2] == "4'" else False
 
+                            logger.debug(f'[分割|消息]{msg}')
+                            logger.debug("[解析|消息]" + ", ".join(f"{k}={v}" for k, v in vars(Message).items() if not k.startswith('__')))
+
                             logger.info(f'[事件|用户加入房间] {Message.user_name}({Message.user_id})')
                             await plugin_transfer('user_join_room', Message)
                             continue
@@ -544,6 +594,9 @@ async def process_message(data, websocket):
                                 user_id = msg[8]
                                 color = msg[5]
                                 is_bot = True if msg[9][:2] == "4'" else False
+
+                            logger.debug(f'[分割|消息]{msg}')
+                            logger.debug("[解析|消息]" + ", ".join(f"{k}={v}" for k, v in vars(Message).items() if not k.startswith('__')))
 
                             logger.info(f'[事件|用户离开房间] {Message.user_name}({Message.user_id})')
                             await plugin_transfer('user_leave_room', Message)
@@ -563,6 +616,9 @@ async def process_message(data, websocket):
                         message_background_color = msg[6]
                         is_bot = True if msg[9][:2] == "4'" else False
                         is_replay = False
+
+                    logger.debug(f'[分割|消息]{msg}')
+                    logger.debug("[解析|消息]" + ", ".join(f"{k}={v}" for k, v in vars(Message).items() if not k.startswith('__')))
 
                     replay_data = replay_to_json(Message.message)
                     if replay_data:
@@ -589,6 +645,9 @@ async def process_message(data, websocket):
                     message_background_color = msg[3]
                     is_bot = True if msg[9][:2] == "4'" else False
 
+                logger.debug(f'[分割|消息]{msg}')
+                logger.debug("[解析|消息]" + ", ".join(f"{k}={v}" for k, v in vars(Message).items() if not k.startswith('__')))
+
                 logger.info(f'[消息|弹幕] {Message.user_name}({Message.user_id}): {Message.message}')
                 await plugin_transfer('danmu_message', Message)
 
@@ -600,6 +659,9 @@ async def process_message(data, websocket):
                     type = MessageType.revoke_message
                     user_id = msg[0]
                     message_id = msg[1]
+
+                logger.debug(f'[分割|消息]{msg}')
+                logger.debug("[解析|消息]" + ", ".join(f"{k}={v}" for k, v in vars(Message).items() if not k.startswith('__')))
 
                 logger.info(f'[事件|撤回] 用户 {Message.user_id} 撤回了 {Message.message_id}')
                 await plugin_transfer('revoke_message', Message)
@@ -628,6 +690,9 @@ async def process_message(data, websocket):
                         media_pic_url = iirose_url_parse(msg[6])
                         media_time = msg[1]
 
+                    logger.debug(f'[分割|消息]{msg}')
+                    logger.debug("[解析|消息]" + ", ".join(f"{k}={v}" for k, v in vars(Message).items() if not k.startswith('__')))
+
                     logger.info(
                         f'[事件|媒体|视频] 由 {Message.play_user} 播放来自 {Message.media_auther} 的 {Message.media_name}，地址是{Message.media_url}')
                     await plugin_transfer('media_video_message', Message)
@@ -644,6 +709,9 @@ async def process_message(data, websocket):
                         media_url = iirose_url_parse(msg[0].split(' ')[0])
                         media_pic_url = iirose_url_parse(msg[6])
                         media_time = msg[1]
+
+                    logger.debug(f'[分割|消息]{msg}')
+                    logger.debug("[解析|消息]" + ", ".join(f"{k}={v}" for k, v in vars(Message).items() if not k.startswith('__')))
 
                     logger.info(
                         f'[事件|媒体|音频] 由 {Message.play_user} 播放来自 {Message.media_auther} 的 {Message.media_name}，地址是 {Message.media_url}')
