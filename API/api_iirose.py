@@ -180,6 +180,26 @@ class APIIirose:
         return {"code": 200}
 
     @staticmethod
+    async def subscription(user_id: str):
+        """
+        关注某人
+        :param user_id:  目标人物唯一标识
+        :return:
+        """
+        await GlobalVal.websocket.send(f'+#0{user_id}')
+        return {"code": 200}
+
+    @staticmethod
+    async def unsubscription(user_id: str):
+        """
+        取消关注某人
+        :param user_id:  目标人物唯一标识
+        :return:
+        """
+        await GlobalVal.websocket.send(f'+#1{user_id}')
+        return {"code": 200}
+
+    @staticmethod
     async def play_media(
             media_type: bool,
             media_url: str,
