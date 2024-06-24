@@ -27,7 +27,7 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal_handler)
     log_level = get_log_level()
     log(log_level)
-    iirosebot_version = 'v1.6.1'
+    iirosebot_version = 'v1.6.2'
 
     def check_version():
         try:
