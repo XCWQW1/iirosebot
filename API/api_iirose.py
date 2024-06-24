@@ -62,8 +62,7 @@ class APIIirose:
         if color is None:
             color = get_user_color()
         msg_id = str(random.random())[2:14]
-        await GlobalVal.websocket.send(
-            json.dumps({"g": user_id, "m": msg, "mc": str(color), "i": msg_id}))
+        await GlobalVal.websocket.send(json.dumps({"g": user_id, "m": msg, "mc": str(color), "i": msg_id}))
         logger.info(f'[消息|私聊|发送] {bot_name}：{msg} ({msg_id}) => {user_id}')
 
     @staticmethod
@@ -78,6 +77,19 @@ class APIIirose:
             color = get_user_color()
         await GlobalVal.websocket.send('~' + json.dumps({"t": msg, "c": str(color)}))
         logger.info(f'[消息|弹幕|发送] {bot_name}：{msg}')
+
+    @staticmethod
+    async def send_msg_to_forum(msg: str, color: str = None, replyId: int = None):
+        """
+        发送消息到论坛  非认证用户无法发送
+        :param msg:  要发送的消息
+        :param color:  消息的颜色十六进至
+        :param replyId:  回复消息的id
+        """
+        if color is None:
+            color = get_user_color()
+        await GlobalVal.websocket.send(':-' + json.dumps({"t": f"{color}{'[@' + str(replyId) + ']' if replyId else ''}{msg}", "r": str(random.random())[2:15]}))
+        logger.info(f'[消息|论坛|发送] {bot_name}：{msg}')
 
     @staticmethod
     async def send_msg(data, msg: str, color: str = None):
