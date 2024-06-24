@@ -467,6 +467,7 @@ async def process_message(data, websocket):
                 continue
 
             elif data[:1] == ">":
+                # 股票
                 msg = data[1:].split('"')
                 if len(msg) != 5:
                     continue
@@ -483,12 +484,13 @@ async def process_message(data, websocket):
                 logger.debug("[解析|消息]" + ", ".join(f"{k}={v}" for k, v in vars(Data).items() if not k.startswith('__')))
 
                 if Data.price_share == 1.0:
+                    # 1.0整为崩盘
                     logger.info(f'[事件|股票] 股票崩盘')
                     await plugin_transfer('share_jump', Data)
-                if Data.price_share != gold:
+                else:
+                    # 不崩盘的情况下都是非一位小数的float，有新数据就推送
                     gold = Data.price_share
-                    logger.info(
-                        f'[事件|股票] 股价：{Data.price_share} 钞/股，总股: {Data.total_share}，总金: {Data.total_money}，持股: {Data.hold_share}，余额: {Data.hold_money}')
+                    logger.info(f'[事件|股票] 股价：{Data.price_share} 钞/股，总股: {Data.total_share}，总金: {Data.total_money}，持股: {Data.hold_share}，余额: {Data.hold_money}')
                     await plugin_transfer('share_message', Data)
                 continue
 
