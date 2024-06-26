@@ -378,7 +378,7 @@ async def process_message(data, websocket):
             if len(data) != 2:
                 continue
             data = [html.unescape(data[0]), html.unescape(data[1])]
-            bs_packagename = data[0][2:]
+            bs_packagename = data[0][1:]
             bs_data = data[1]
 
             class Data:
