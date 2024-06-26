@@ -382,7 +382,7 @@ async def process_message(data, websocket):
             bs_data = data[1]
 
             class Data:
-                packagename = data[0][2:]
+                packagename = data[0][1:]
                 message = data[1]
 
             logger.debug("[解析|消息]" + ", ".join(f"{k}={v}" for k, v in vars(Data).items() if not k.startswith('__')))
