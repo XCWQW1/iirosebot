@@ -378,16 +378,21 @@ async def process_message(data, websocket):
             if len(data) != 2:
                 continue
             data = [html.unescape(data[0]), html.unescape(data[1])]
-            bs_packagename = data[0][2:]
-            bs_data = data[1]
+
+            bs_packagename = data[0][1:]
+            bs_data = data[1][14:]
+            bs_send_user_id = data[1][:13]
+
+            logger.debug(f'[分割|消息]{data}')
 
             class Data:
-                packagename = data[0][2:]
-                message = data[1]
+                packagename = bs_packagename
+                message = bs_data
+                user_id = bs_send_user_id
 
             logger.debug("[解析|消息]" + ", ".join(f"{k}={v}" for k, v in vars(Data).items() if not k.startswith('__')))
 
-            logger.info(f"[基站|接收] 包名：{bs_packagename}, 内容：{bs_data}")
+            logger.info(f"[基站|接收] 包名：{bs_packagename}, 发送者：{bs_send_user_id}, 内容：{bs_data}")
             await plugin_transfer('base_station_message', Data)
             continue
         elif data.startswith("@*"):
