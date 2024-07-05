@@ -1,11 +1,11 @@
 import re
 
-from API.api_get_config import get_master_id
-from API.api_iirose import APIIirose
-from API.api_load_config import load_config
-from API.api_message import at_user
-from API.decorator.command import on_command, MessageType
-from globals.globals import GlobalVal
+from iirosebot.API.api_get_config import get_master_id
+from iirosebot.API.api_iirose import APIIirose
+from iirosebot.API.api_load_config import load_config
+from iirosebot.API.api_message import at_user
+from iirosebot.API.decorator import on_command, MessageType
+from iirosebot.globals.globals import GlobalVal
 
 API = APIIirose()
 move_to_master_bool = False

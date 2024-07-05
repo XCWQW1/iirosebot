@@ -6,11 +6,11 @@ import threading
 
 import requests
 
-from API.api_get_config import get_log_level
-from log.main import log
+from iirosebot.API.api_get_config import get_log_level
+from iirosebot.log.main import log
 from loguru import logger
-from globals.globals import GlobalVal
-from init.main_init import main_init
+from iirosebot.globals.globals import GlobalVal
+from iirosebot.init.main_init import main_init
 
 
 def signal_handler(sig, frame):
@@ -23,11 +23,11 @@ def signal_handler(sig, frame):
     sys.exit(0)
 
 
-if __name__ == '__main__':
+def main():
     signal.signal(signal.SIGINT, signal_handler)
     log_level = get_log_level()
     log(log_level)
-    iirosebot_version = 'v1.6.2'
+    iirosebot_version = 'v1.7.0'
 
     def check_version():
         try:
@@ -43,7 +43,36 @@ if __name__ == '__main__':
     logger.info('正在检查更新中...')
     threading.Thread(target=check_version()).start()
     asyncio.run(main_init())
-    from ws_iirose.ws import connect_to_iirose_server
-    from plugin_system.plugin_init import find_plugins_functions
+    from iirosebot.ws_iirose.ws import connect_to_iirose_server
+    from iirosebot.plugin_system.plugin_init import find_plugins_functions
     GlobalVal.plugin_list = asyncio.run(find_plugins_functions())
     asyncio.run(connect_to_iirose_server())
+
+
+if __name__ == '__main__':
+    main()
+
+
+'''
+                    _ooOoo_
+                   o8888888o
+                   88" . "88
+                   (| -_- |)
+                    O\ = /O
+                ____/`---'\____
+              .   ' \\| |// `.
+               / \\||| : |||// \
+             / _||||| -:- |||||- \
+               | | \\\ - /// | |
+             | \_| ''\---/'' | |
+              \ .-\__ `-` ___/-. /
+           ___`. .' /--.--\ `. . __
+        ."" '< `.___\_<|>_/___.' >'"".
+        | | : `- \`.;`\ _ /`;.`/ - ` : | |
+         \ \ `-. \_ __\ /__ _/ .-` / /
+ ======`-.____`-.___\_____/___.-`____.-'======
+                    `=---='
+
+ .............................................
+          佛祖保佑             永无BUG
+'''

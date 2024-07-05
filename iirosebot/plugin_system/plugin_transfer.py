@@ -4,8 +4,8 @@ import threading
 import queue
 
 from loguru import logger
-from globals.globals import GlobalVal
-from plugin_system.plugin_init import plugin_manage_data
+from iirosebot.globals.globals import GlobalVal
+from iirosebot.plugin_system.plugin_init import plugin_manage_data
 
 task_queue = queue.Queue()
 

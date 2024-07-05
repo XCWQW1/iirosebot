@@ -10,10 +10,10 @@ from enum import Enum
 from typing import Union
 from loguru import logger
 
-from globals.globals import GlobalVal
-from API.api_load_config import load_config
-from API.api_get_config import get_user_color
-from ws_iirose.transfer_plugin import MessageType
+from iirosebot.globals.globals import GlobalVal
+from iirosebot.API.api_load_config import load_config
+from iirosebot.API.api_get_config import get_user_color
+from iirosebot.ws_iirose.transfer_plugin import MessageType
 
 
 bot_name, _, _ = load_config()
@@ -189,6 +189,7 @@ class APIIirose:
         :return:
         """
         await GlobalVal.websocket.send(f'+*{user_id}{"" if message is None else " " + message}')
+        logger.info(f'[事件|点赞] 目标用户：{user_id} {"" if message is None else "留言：" + message}')
         return {"code": 200}
 
     @staticmethod
@@ -199,6 +200,7 @@ class APIIirose:
         :return:
         """
         await GlobalVal.websocket.send(f'+#0{user_id}')
+        logger.info(f'[事件|关注] 目标用户：{user_id}')
         return {"code": 200}
 
     @staticmethod
@@ -209,6 +211,7 @@ class APIIirose:
         :return:
         """
         await GlobalVal.websocket.send(f'+#1{user_id}')
+        logger.info(f'[事件|取关] 目标用户：{user_id}')
         return {"code": 200}
 
     @staticmethod
