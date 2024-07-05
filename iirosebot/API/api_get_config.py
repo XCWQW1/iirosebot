@@ -1,7 +1,6 @@
 import re
 import yaml
-
-import log.main
+from loguru import logger
 
 config_path = "config/config.yml"
 
@@ -24,7 +23,7 @@ def get_user_color() -> str:
     if re.match(pattern, color):
         return color
     else:
-        log.main.logger.warning('[警告|配置] 配置文件中的颜色不符合16进制')
+        logger.warning('[警告|配置] 配置文件中的颜色不符合16进制')
         return 'DC143C'
 
 

@@ -16,8 +16,55 @@
 
 > 用户使用本框架做出任何行为作者不可控，产生的后果框架作者概不负责，包括但不限于使用本框架时机器人账户被封禁等
 
+### 开始使用：
+
 <details>
-<summary>开始使用：</summary>
+<summary>从包管理运行：</summary>
+
+> 需要环境中已安装 3.11.4>=python 并且可以使用 pip 工具
+
+- ### 1, 安装iirosebot
+  ```
+  pip install iirosebot
+  ```
+
+- ### 2, 初始化
+  创建或者找到一个合适的文件夹后在文件夹下的命令行\终端中执行 ```iirosebot```
+  
+- ### 3, 配置 
+  打开 config>config.yml 文件
+  ```yaml
+  bot:
+    color: ffffff # 机器人消息颜色
+    introduction: '' # 机器人签名
+    password: '' # 机器人账户的密码
+    room_id: 5ce6a4b520a90  # 机器人登陆后进入的房间id
+    username: ''  # 机器人用户名 改名后需修改这里
+  log:
+    level: INFO # 日志等级 
+  other:
+    master_id: ''  # 主人唯一标识
+  ```
+  
+- ### 4, 编写\安装插件 （可选）
+  > 示例插件 iirose_example.py iirose_flow_master.py 请在仓库iirosebot/plugins下查看
+
+  也可以到[插件仓库](https://github.com/XCWQW1/iirosebot-plugins/blob/main/README.md)里面寻找您喜欢的插件
+
+- ### 5, 启动
+  >第一次运行会停止1次要求重启，用于初始化配置文件等
+  
+  执行 `iirosebot`
+
+- ### 8, 调试
+  > 可以私聊机器人发送 `.插件` 获取插件管理菜单，提示无权请检查配置文件中的主人标识是否正确
+  
+  ### 感谢您的使用
+
+</details>
+
+<details>
+<summary>从源码运行：</summary>
 
 - ### 1, 克隆本项目
   ```
@@ -27,7 +74,7 @@
 
 - ### 2, 安装所需库
 
-  进入克隆后的目录执行```pip install -r requirements.txt``` 
+  进入克隆后的目录下的iirosebot目录执行```pip install -r requirements.txt``` 
 
 - ### 3, 创建或使用已有的iirose账号
   

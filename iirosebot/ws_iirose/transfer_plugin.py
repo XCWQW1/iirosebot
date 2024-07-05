@@ -8,12 +8,12 @@ import traceback
 
 from loguru import logger
 
-from API.api_load_config import load_config
-from API.decorator.command import function_records, MessageType
-from globals.globals import GlobalVal
-from plugin_system.plugin_transfer import plugin_transfer
-from plugin_system.plugin_init import plugin_manage_data
-from API.api_iirose import APIIirose
+from iirosebot.API.api_load_config import load_config
+from iirosebot.API.decorator import function_records, MessageType
+from iirosebot.globals.globals import GlobalVal
+from iirosebot.plugin_system.plugin_transfer import plugin_transfer
+from iirosebot.plugin_system.plugin_init import plugin_manage_data
+from iirosebot.API.api_iirose import APIIirose
 
 API = APIIirose()
 gold = 0
@@ -340,7 +340,7 @@ async def process_message(data, websocket):
             else:
                 await websocket.send(">#")
                 await login_error(data)
-                from ws_iirose.login_bot import init_plugin
+                from iirosebot.ws_iirose.login_bot import init_plugin
                 await init_plugin()
                 await pares_big(data)
                 await plugin_transfer('date_update')
@@ -361,7 +361,7 @@ async def process_message(data, websocket):
         else:
             await websocket.send(">#")
             await login_error(data)
-            from ws_iirose.login_bot import init_plugin
+            from iirosebot.ws_iirose.login_bot import init_plugin
             await init_plugin()
             await pares_big(data)
             await plugin_transfer('date_update')
@@ -406,7 +406,7 @@ async def process_message(data, websocket):
                 logger.debug(f'[分割|消息]{data}')
                 logger.debug("[解析|消息]" + ", ".join(f"{k}={v}" for k, v in vars(Data).items() if not k.startswith('__')))
 
-                logger.info(f"[事件|通知|房间] 内容：{data[0][2:]}, 背景：http{data[1]}, 时间戳：{data[2]}")
+                logger.info(f"[事件|信箱|房间] 内容：{data[0][2:]}, 背景：http{data[1]}, 时间戳：{data[2]}")
                 await plugin_transfer('room_notice', Data)
                 continue
             if len(data) == 7:
@@ -421,7 +421,7 @@ async def process_message(data, websocket):
                     logger.debug(f'[分割|消息]{data}')
                     logger.debug("[解析|消息]" + ", ".join(f"{k}={v}" for k, v in vars(Data).items() if not k.startswith('__')))
 
-                    logger.info(f"[事件|通知|点赞] 用户 {Data.user_name}{'' if Data.message == '' else '备注：' + Data.message}")
+                    logger.info(f"[事件|信箱|点赞] 用户 {Data.user_name}{'' if Data.message == '' else '备注：' + Data.message}")
                     await plugin_transfer('self_like', Data)
                     continue
                 elif data[3] == "'^":
@@ -433,7 +433,7 @@ async def process_message(data, websocket):
 
                     logger.debug(f'[分割|消息]{data}')
                     logger.debug("[解析|消息]" + ", ".join(f"{k}={v}" for k, v in vars(Data).items() if not k.startswith('__')))
-                    logger.info(f"[事件|通知|关注] 用户 {Data.user_name} 关注了您")
+                    logger.info(f"[事件|信箱|关注] 用户 {Data.user_name} 关注了您")
                     await plugin_transfer('self_subscription', Data)
                     continue
         elif data.startswith("~"):

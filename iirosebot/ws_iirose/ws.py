@@ -5,10 +5,10 @@ import websockets
 
 from enum import Enum
 from loguru import logger
-from globals.globals import GlobalVal
-from ws_iirose.ping import ping_iirose
-from ws_iirose.login_bot import login_to_server
-from ws_iirose.transfer_plugin import process_message
+from iirosebot.globals.globals import GlobalVal
+from iirosebot.ws_iirose.ping import ping_iirose
+from iirosebot.ws_iirose.login_bot import login_to_server
+from iirosebot.ws_iirose.transfer_plugin import process_message
 
 
 class Status(Enum):

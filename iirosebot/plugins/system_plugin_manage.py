@@ -1,8 +1,8 @@
-from API.api_iirose import APIIirose
-from API.decorator.command import on_command, MessageType
-from API.api_get_config import get_master_id
-from API.api_message import send_markdown_code
-from plugin_system.plugin_manage import plugin_manage_data, off_plugin, on_plugin, reload_plugin, load_plugin
+from iirosebot.API.api_iirose import APIIirose
+from iirosebot.API.decorator import on_command, MessageType
+from iirosebot.API.api_get_config import get_master_id
+from iirosebot.API.api_message import send_markdown_code
+from iirosebot.plugin_system.plugin_manage import plugin_manage_data, off_plugin, on_plugin, reload_plugin, load_plugin
 
 API = APIIirose()
 

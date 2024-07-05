@@ -1,8 +1,8 @@
 import os
 import sys
 
-from globals.globals import GlobalVal
-from plugin_system.plugin_init import plugin_manage_data, get_functions_from_file
+from iirosebot.globals.globals import GlobalVal
+from iirosebot.plugin_system.plugin_init import plugin_manage_data, get_functions_from_file
 
 no_plugin_error = '找不到该插件'
 
