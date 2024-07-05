@@ -31,7 +31,12 @@
 - ### 2, 初始化
   创建或者找到一个合适的文件夹后在文件夹下的命令行\终端中执行 ```iirosebot```
   
-- ### 3, 配置 
+
+- ### 3, 创建或使用已有的iirose账号
+  机器人账号标识需向Ruby申请
+  访问iirose.com创建一个账号，记住用户名以及密码备用
+
+- ### 4, 配置 
   打开 config>config.yml 文件
   ```yaml
   bot:
@@ -46,20 +51,17 @@
     master_id: ''  # 主人唯一标识
   ```
   
-- ### 4, 编写\安装插件 （可选）
+- ### 5, 编写\安装插件 （可选）
   > 示例插件 iirose_example.py iirose_flow_master.py 请在仓库iirosebot/plugins下查看
 
   也可以到[插件仓库](https://github.com/XCWQW1/iirosebot-plugins/blob/main/README.md)里面寻找您喜欢的插件
 
-- ### 5, 启动
+- ### 6, 启动
   >第一次运行会停止1次要求重启，用于初始化配置文件等
   
   执行 `iirosebot`
 
-- ### 8, 调试
-  > 可以私聊机器人发送 `.插件` 获取插件管理菜单，提示无权请检查配置文件中的主人标识是否正确
-  
-  ### 感谢您的使用
+### 感谢您的使用
 
 </details>
 
@@ -115,7 +117,6 @@
   ### 感谢您的使用
 
 </details>
-
 
 有什么bug或者建议可以提Issues或者进入房间后联系作者
 

@@ -17,11 +17,6 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/XCWQW1/iirosebot",
     packages=setuptools.find_packages(),
-    classifiers=[
-        "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: Apache-2.0 license",
-        "Operating System :: OS Independent",
-    ],
     entry_points={
         'console_scripts': [
             'iirosebot=iirosebot.cli:main',
