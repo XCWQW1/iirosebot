@@ -39,16 +39,44 @@
 - ### 4, 配置 
   打开 config>config.yml 文件
   ```yaml
-  bot:
-    color: ffffff # 机器人消息颜色
-    introduction: '' # 机器人签名
-    password: '' # 机器人账户的密码
-    room_id: 5ce6a4b520a90  # 机器人登陆后进入的房间id
-    username: ''  # 机器人用户名 改名后需修改这里
-  log:
-    level: INFO # 日志等级 
-  other:
-    master_id: ''  # 主人唯一标识
+    bot:
+      color: ffffff # 机器人消息颜色
+      introduction: '' # 机器人签名
+      password: '' # 机器人账户的密码
+      room_id: 5ce6a4b520a90  # 机器人登陆后进入的房间id
+      username: ''  # 机器人用户名 改名后需修改这里
+    heartbeat:
+      enabled: false  # 是否启用心跳
+      interval: 15000  # 心跳包间隔，毫秒
+    log:
+      color: true  # 启用日志颜色
+      level: INFO # 日志等级 
+    other:
+      master_id: ''  # 主人唯一标识
+    serve:
+      http_api:
+        enabled: false  # 启用 HTTP API
+        host: localhost  # 监听地址
+        port: 9000  # 监听端口
+        verify: false  # 是否开启鉴权
+      token: lsWPLFZwQSZbEWYi8ZFVFvj1W7xjCw0Lmm0x5dRC  # 鉴权密钥 secret/access token
+      webhook:
+        enabled: false  # 启用 WEBHOOK
+        time_out: 3000  # 超时时间，毫秒
+        url: http://your_webhook.server/  # WEBHOOK 服务器地址
+        verify: false  # 是否开启鉴权
+      websocket_reverse:
+        api: ws://your_websocket_api.server  # 接口接收#
+        enabled: false  # 启用 反向ws
+        event: ws://your_websocket_event.server  # 事件推送
+        reconnect_interval: 3000  # 超时时间，毫秒
+        url: ws://your_websocket_universal.server  # 反向ws服务器地址，此地址可以连接的情况下event和url作废 
+        verify: false  # 是否开启鉴权
+      websocket_server:
+        enabled: false  # 启用 WS服务器
+        host: localhost  # 监听地址
+        port: 9002  # 监听端口
+        verify: false  # 是否开启鉴权
   ```
   
 - ### 5, 编写\安装插件 （可选）
@@ -90,16 +118,44 @@
 - ### 4, 配置
   打开 config>config.yml 文件
   ```yaml
-  bot:
-    color: ffffff # 机器人消息颜色
-    introduction: '' # 机器人签名
-    password: '' # 机器人账户的密码
-    room_id: 5ce6a4b520a90  # 机器人登陆后进入的房间id
-    username: ''  # 机器人用户名 改名后需修改这里
-  log:
-    level: INFO # 日志等级，一般不用改
-  other:
-    master_id: ''  # 主人唯一标识
+    bot:
+      color: ffffff # 机器人消息颜色
+      introduction: '' # 机器人签名
+      password: '' # 机器人账户的密码
+      room_id: 5ce6a4b520a90  # 机器人登陆后进入的房间id
+      username: ''  # 机器人用户名 改名后需修改这里
+    heartbeat:
+      enabled: false  # 是否启用心跳
+      interval: 15000  # 心跳包间隔，毫秒
+    log:
+      color: true  # 启用日志颜色
+      level: INFO # 日志等级 
+    other:
+      master_id: ''  # 主人唯一标识
+    serve:
+      http_api:
+        enabled: false  # 启用 HTTP API
+        host: localhost  # 监听地址
+        port: 9000  # 监听端口
+        verify: false  # 是否开启鉴权
+      token: lsWPLFZwQSZbEWYi8ZFVFvj1W7xjCw0Lmm0x5dRC  # 鉴权密钥 secret/access token
+      webhook:
+        enabled: false  # 启用 WEBHOOK
+        time_out: 3000  # 超时时间，毫秒
+        url: http://your_webhook.server/  # WEBHOOK 服务器地址
+        verify: false  # 是否开启鉴权
+      websocket_reverse:
+        api: ws://your_websocket_api.server  # 接口接收#
+        enabled: false  # 启用 反向ws
+        event: ws://your_websocket_event.server  # 事件推送
+        reconnect_interval: 3000  # 超时时间，毫秒
+        url: ws://your_websocket_universal.server  # 反向ws服务器地址，此地址可以连接的情况下event和url作废 
+        verify: false  # 是否开启鉴权
+      websocket_server:
+        enabled: false  # 启用 WS服务器
+        host: localhost  # 监听地址
+        port: 9002  # 监听端口
+        verify: false  # 是否开启鉴权
   ```
   
 - ### 6, 编写\安装插件 （可选）

@@ -1,12 +1,14 @@
+"""
+发送登陆包到蔷薇服务器
+"""
 import asyncio
 import json
 
-from iirosebot.API.api_get_config import get_introduction
-from iirosebot.globals.globals import GlobalVal
-
 from loguru import logger
-from iirosebot.API.api_load_config import load_config
+from iirosebot.globals.globals import GlobalVal
 from iirosebot.utools.md5_encrypt import md5_encrypt
+from iirosebot.API.api_load_config import load_config
+from iirosebot.API.api_get_config import get_introduction
 from iirosebot.plugin_system.plugin_transfer import plugin_transfer
 
 on_init = False

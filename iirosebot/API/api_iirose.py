@@ -1,8 +1,12 @@
+"""
+常用接口
+"""
 import io
 import json
-import time
 import html
 import random
+import traceback
+
 import requests
 import subprocess
 
@@ -10,17 +14,14 @@ from enum import Enum
 from typing import Union
 from loguru import logger
 
+from iirosebot.exception import APIException
 from iirosebot.globals.globals import GlobalVal
+from iirosebot.API.decorator import MessageType
 from iirosebot.API.api_load_config import load_config
 from iirosebot.API.api_get_config import get_user_color
-from iirosebot.ws_iirose.transfer_plugin import MessageType
 
 
 bot_name, _, _ = load_config()
-
-
-class ApiError(Exception):
-    pass
 
 
 class PlatformType(Enum):
@@ -49,6 +50,8 @@ class APIIirose:
         msg_id = str(random.random())[2:14]
         await GlobalVal.websocket.send(json.dumps({"m": msg, "mc": str(color), "i": msg_id}))
         logger.info(f'[消息|房间|发送] {bot_name}：{msg} ({msg_id})')
+        GlobalVal.send_message_cache['group'][msg_id] = {"message": msg}
+        return msg_id
 
     @staticmethod
     async def send_msg_to_private(msg: str, user_id: str, color: str = None):
@@ -64,6 +67,8 @@ class APIIirose:
         msg_id = str(random.random())[2:14]
         await GlobalVal.websocket.send(json.dumps({"g": user_id, "m": msg, "mc": str(color), "i": msg_id}))
         logger.info(f'[消息|私聊|发送] {bot_name}：{msg} ({msg_id}) => {user_id}')
+        GlobalVal.send_message_cache['private'][msg_id] = {"message": msg, "user_id": user_id}
+        return msg_id
 
     @staticmethod
     async def send_msg_to_danmu(msg: str, color: str = None):
@@ -77,9 +82,10 @@ class APIIirose:
             color = get_user_color()
         await GlobalVal.websocket.send('~' + json.dumps({"t": msg, "c": str(color)}))
         logger.info(f'[消息|弹幕|发送] {bot_name}：{msg}')
+        return None
 
     @staticmethod
-    async def send_msg_to_forum(msg: str, color: str = None, replyId: int = None):
+    async def send_msg_to_forum(msg: str, color: str = None, replyId: str = None):
         """
         发送消息到论坛  非认证用户无法发送
         :param msg:  要发送的消息
@@ -103,13 +109,14 @@ class APIIirose:
         if color is None:
             color = get_user_color()
         if data.type in [MessageType.room_chat, MessageType.join_room, MessageType.leave_room]:
-            await APIIirose.send_msg_to_room(msg, str(color))
+            msg_id = await APIIirose.send_msg_to_room(msg, str(color))
         elif data.type == MessageType.private_chat:
-            await APIIirose.send_msg_to_private(msg, data.user_id, str(color))
+            msg_id = await APIIirose.send_msg_to_private(msg, data.user_id, str(color))
         elif data.type == MessageType.danmu:
-            await APIIirose.send_msg_to_danmu(msg, str(color))
+            msg_id = await APIIirose.send_msg_to_danmu(msg, str(color))
         else:
-            raise ApiError("未知的类型")
+            raise APIException("未知的类型")
+        return msg_id
 
     @staticmethod
     async def replay_msg(data, msg: str, color: str = None):
@@ -149,7 +156,7 @@ class APIIirose:
             c_room_id = GlobalVal.room_id
         if room_id == c_room_id:
             logger.error('移动房间失败，原因：目标访问为当前所在房间')
-            raise ApiError("移动房间失败，原因：目标访问为当前所在房间")
+            raise APIException("移动房间失败，原因：目标访问为当前所在房间")
         GlobalVal.room_id = room_id
         GlobalVal.move_room = True
         if password is not None:
@@ -170,13 +177,13 @@ class APIIirose:
             if type(file_name) is str:
                 files = {'f[]': open(file_name, 'rb')}
             else:
-                files = {'f[]': (file_name, 'image/png')}
+                files = {'f[]': ('bytes.png', file_name, 'image/png')}
 
-            response = requests.post('https://xc.null.red:8043/XCimg/upload_cache', files=files)
+            response = requests.post('https://xc.null.red:8043/XCimg/upload', files=files)
         except AttributeError:
-            raise ApiError("错误，获取不到文件")
+            raise APIException("错误，获取不到文件")
         except:
-            raise ApiError("错误，访问接口失败")
+            raise APIException("错误，访问接口失败\n" + traceback.format_exc())
         if response.status_code == 200:
             return {"url": f'https://xc.null.red:8043/XCimg/img/{response.text}'}
 
@@ -247,6 +254,8 @@ class APIIirose:
         :param media_audio:  媒体音频地址，仅在bilibili平台起作用，视频地址填入media_url
         :return:
         """
+        message_id = str(random.random())[2:14]
+
         if color is None:
             if media_pic:
                 try:
@@ -281,7 +290,7 @@ class APIIirose:
                 media_data = json.loads(output)
                 duration = float(media_data['format']['duration'])
             except:
-                raise ApiError("无法访问到媒体或无法调用ffprobe,请检查媒体是否正确以及ffmpeg是否安装并且环境变量配置正确")
+                raise APIException("无法访问到媒体或无法调用ffprobe,请检查媒体是否正确以及ffmpeg是否安装并且环境变量配置正确")
         else:
             duration = media_time
 
@@ -369,7 +378,7 @@ class APIIirose:
                      f">{media_pic}"
                      f">{color}>{media_br}",
                 "mc": color,
-                "i": str(random.random())[2:14]
+                "i": message_id
             }
         elif platform_type == PlatformType.qq:
             card_json = {
@@ -378,7 +387,7 @@ class APIIirose:
                      f">{media_pic}"
                      f">{color}>{media_br}",
                 "mc": color,
-                "i": str(random.random())[2:14]
+                "i": message_id
             }
         elif platform_type == PlatformType.kugou:
             card_json = {
@@ -387,7 +396,7 @@ class APIIirose:
                      f">{media_pic}"
                      f">{color}>{media_br}",
                 "mc": color,
-                "i": str(random.random())[2:14]
+                "i": message_id
             }
         elif platform_type == PlatformType.bilibili_video:
             minutes = int(media_time) // 60
@@ -398,7 +407,7 @@ class APIIirose:
                      f">{media_name}>{media_auther}"
                      f">{media_pic}>{color}>>{media_br}>>{time_format}",
                 "mc": color,
-                "i": str(random.random())[2:14]
+                "i": message_id
             }
         elif platform_type == PlatformType.bilibili_live:
             minutes = int(media_time) // 60
@@ -411,7 +420,7 @@ class APIIirose:
                      f">{media_name}>{media_auther}"
                      f">{media_pic}>{color}>>{media_br}>>{time_format}",
                 "mc": color,
-                "i": str(random.random())[2:14]
+                "i": message_id
             }
         elif platform_type == PlatformType.no_platform:
             card_json = {
@@ -419,13 +428,15 @@ class APIIirose:
                      f">{media_name}>{media_auther}"
                      f">{media_pic}",
                 "mc": color,
-                "i": str(random.random())[2:14]
+                "i": message_id
             }
         else:
-            raise ApiError('不支持的平台')
+            raise APIException('不支持的平台')
 
         if send_card:
             await GlobalVal.websocket.send(json.dumps(card_json))
+        else:
+            message_id = None
         room_info = await APIIirose.get_room_info(GlobalVal.now_room_id)
 
         try:
@@ -440,60 +451,104 @@ class APIIirose:
 
         await GlobalVal.websocket.send(media_type + json.dumps(media_json, ensure_ascii=False))
 
-        return {'duration': float(duration)}
+        return {'duration': float(duration), 'message_id': message_id}
 
     @staticmethod
     async def stop_media(text: str = 'cut', color: str = None):
+        """
+        投票切歌
+        :param text:  消息内容
+        :param color:  消息颜色
+        :return:
+        """
         if color is None:
             color = get_user_color()
         await GlobalVal.websocket.send('{0' + json.dumps({"m": text, "mc": color, "i": str(random.random())[2:14]}))
 
     @staticmethod
-    async def revoke_message(message_id: str):
-        await GlobalVal.websocket.send(f'v0#{message_id}')
+    async def revoke_message(message_id: str, user_id: str = None):
+        """
+        撤回消息
+        :param message_id:  消息id
+        :param user_id:  私聊用户的id，不提供按房间消息走
+        :return:
+        """
+        if user_id is None:
+            await GlobalVal.websocket.send(f'v0#{message_id}')
+        else:
+            await GlobalVal.websocket.send(f'v0*{user_id}#{message_id}')
+            print(f'v0*{user_id}#{message_id}')
 
     @staticmethod
     async def update_share():
+        """
+        重新获取当前股价
+        :return:
+        """
         await GlobalVal.websocket.send('>#')
 
     @staticmethod
     async def buy_share(num: int):
+        """
+        购买股票
+        :return:
+        """
         await GlobalVal.websocket.send(f'>${num}')
 
     @staticmethod
     async def sell_share(num: int):
+        """
+        卖出股票
+        :return:
+        """
         await GlobalVal.websocket.send(f'>@{num}')
 
     @staticmethod
-    async def get_room_info(room_id: str):
+    async def get_room_info(room_id: str = None, room_name: str = None) -> json:
         try:
             data = GlobalVal.iirose_date['room'][room_id]
             return data
         except:
-            return None
+            return {}
 
     @staticmethod
-    async def get_user_info(user_id: str):
+    async def get_user_info(user_id: str = None, user_name: str = None) -> json:
         try:
             data = GlobalVal.iirose_date['user'][user_id]
             return data
         except:
-            return None
+            return {}
 
     @staticmethod
     async def get_playlist():
         await GlobalVal.websocket.send("%")
-        for _ in range(20):
-            data = GlobalVal.message_data['playlist']
-            if data is not None:
-                GlobalVal.message_data['playlist'] = None
-                return data
-            time.sleep(0.01)
-        raise ApiError("获取歌单失败，原因：超时")
+        raise APIException("获取歌单失败，原因：超时")
 
     @staticmethod
     async def send_notice(message: str):
         await GlobalVal.websocket.send(f'!!["{message}"]')
+
+    @staticmethod
+    async def send_kick(user_name: str):
+        await GlobalVal.websocket.send(f'!#["{html.escape(user_name.lower())}"]')
+
+    @staticmethod
+    async def send_ban(user_name: str, duration: int, message: str = ""):
+        await GlobalVal.websocket.send(f'!h3["41","{html.escape(user_name.lower())}","{duration}s","{message}"]')
+
+    @staticmethod
+    async def whole_ban(enable: bool):
+        if enable:
+            await GlobalVal.websocket.send("_~!4")
+        else:
+            await GlobalVal.websocket.send("_~!0")
+
+    @staticmethod
+    async def room_anonymous(enable: bool):
+        if enable:
+            await GlobalVal.websocket.send('!h7["10"]')
+        else:
+            await GlobalVal.websocket.send('!h7["1"]')
 
 
 class BaseStation:

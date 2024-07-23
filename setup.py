@@ -8,7 +8,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="iirosebot",
-    version="1.7.0",
+    version="1.7.1",
     author="XCWQW1",
     author_email="3539757707@qq.com",
     description="一个用于蔷薇花园(iirose.com)的python机器人框架",

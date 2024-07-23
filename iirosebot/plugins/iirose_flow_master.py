@@ -60,7 +60,7 @@ async def wait_here(Message):
 @on_command('回到默认房间', False, command_type=[MessageType.room_chat, MessageType.private_chat])
 async def back_home(Message):
     if Message.user_id == get_master_id():
-        bot_name, room_id, bot_password = load_config()
+        bot_name, room_id, bot_password, _ = load_config()
         if GlobalVal.now_room_id != room_id:
             await API.send_msg(Message, f'{at_user(Message.user_name)}已执行')
             await API.move_room(room_id)
