@@ -7,6 +7,7 @@ from loguru import logger
 from iirosebot.globals.globals import GlobalVal
 from iirosebot.plugin_system.plugin_init import plugin_manage_data
 from iirosebot.serve.webhook import wh_queue
+from iirosebot.serve.websocket_client import ws_client_queue
 from iirosebot.serve.websocket_server import ws_server_queue
 from iirosebot.API.api_get_config import get_serve
 
@@ -79,9 +80,15 @@ PluginTransferThread(task_queue).start()
 async def plugin_transfer(function_name, data=None, one_func=False):
     task_queue.put((function_name, data, one_func))
 
-    if not one_func and serve_status['webhook']['enabled']:
+    if one_func:
+        return
+
+    if serve_status['webhook']['enabled']:
         await wh_queue.put((function_name, data))
 
-    if not one_func and serve_status['websocket_server']['enabled']:
+    if serve_status['websocket_server']['enabled']:
         await ws_server_queue.put((function_name, data))
+
+    if serve_status['websocket_reverse']['enabled']:
+        await ws_client_queue.put((function_name, data))
 

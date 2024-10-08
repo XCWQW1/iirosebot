@@ -5,6 +5,8 @@ import re
 import traceback
 
 from loguru import logger
+
+from iirosebot.API.api_get_config import get_bot_id
 from iirosebot.API.api_iirose import APIIirose
 from iirosebot.exception import LoginException
 from iirosebot.globals.globals import GlobalVal
@@ -63,7 +65,17 @@ def replay_to_json(text):
         return []
 
 
+async def put_message_wait(event_type, data):
+    event_type = str(event_type)
+    if event_type in GlobalVal.message_queue:
+        if GlobalVal.message_queue[event_type] != {}:
+            for i in GlobalVal.message_queue[event_type]:
+                GlobalVal.message_queue[event_type][i] = data
+
+
 async def pares_big(data):
+    with open('big_r', 'w', encoding="utf-8") as f:
+        f.write(data)
     iirose_date = GlobalVal.iirose_date
     big_r = data.split("<")
     user_data_json = {}
@@ -80,9 +92,10 @@ async def pares_big(data):
             match = re.search(r'\b([\da-f]{13}_[\da-f]{13})\b', i)
             if i[:8] == 'cartoon/':
                 user_data = i.split('>')
+                user_data[2] = html.unescape(user_data[2])
                 if user_data[8][:1] == 'X':
                     user_data = i.split(">")
-                    if not len(i) == 14 and not len(i) == 21:
+                    if not len(i) == 16 and not len(i) == 21:
                         continue
 
                     user_data_json[user_data[8]] = {
@@ -101,6 +114,9 @@ async def pares_big(data):
 
                     user_name_data_json[user_data[2]] = user_data_json[user_data[8]]
 
+                    if len(i) == 21:
+                        GlobalVal.self_info = user_data_json[user_data[8]]
+
                     if user_data[4] in room_tree:
                         room_tree[user_data[4]][user_data[8]] = user_data_json[user_data[8]]
                     else:
@@ -110,7 +126,7 @@ async def pares_big(data):
 
                     continue
                 else:
-                    if not len(i) == 14 and not len(i) == 21:
+                    if not len(i) == 16 and not len(i) == 21:
                         continue
 
                     user_pic = user_data[0]
@@ -162,6 +178,7 @@ async def pares_big(data):
                     continue
             if match:
                 room_data = i.split(">")
+                room_data[1] = html.unescape(room_data[1])
                 if len(room_data) == 8:
                     room_id = room_data[0].split('_')[1]
                     room_name = room_data[1]
@@ -272,8 +289,11 @@ async def pares_big(data):
             else:
                 if i[:4] == 'http':
                     i = i.split('>')
-                    if not len(i) == 14 and not len(i) == 21:
+
+                    if not len(i) == 16 and not len(i) == 21 and not len(i) == 23:
                         continue
+
+                    i[2] = html.unescape(i[2])
 
                     user_pic = i[0]
                     user_sex = i[1]
@@ -315,6 +335,9 @@ async def pares_big(data):
 
                     user_name_data_json[user_name] = user_data_json[user_id]
 
+                    if len(i) == 21:
+                        GlobalVal.self_info = user_data_json[user_id]
+
                     if user_room_id in room_tree:
                         room_tree[user_room_id][user_id] = user_data_json[user_id]
                     else:
@@ -331,6 +354,7 @@ async def pares_big(data):
     GlobalVal.iirose_date['room_name'] = {**room_name_data_json, **GlobalVal.iirose_date['room_name']}
     GlobalVal.iirose_date['user_name'] = {**user_name_data_json, **GlobalVal.iirose_date['user_name']}
     # print(json.dumps(GlobalVal.iirose_date, ensure_ascii=False))
+
     logger.info('基础数据已更新')
 
 
@@ -497,7 +521,13 @@ async def process_message(data, websocket):
                     song_info = {"song_time": song[0], "song_name": song[1], "user_name": song[2][6:], "user_pic": song[4],
                                  "song_pic": song[5], "user_color": song[2][:6]}
                     song_data.append(song_info)
-            GlobalVal.message_data['playlist'] = song_data
+
+            await put_message_wait('playlist', song_data)
+
+            continue
+        elif data.startswith("_~"):
+            await put_message_wait('fuck_bro', data)
+
             continue
         else:
             if data[:2] == '-*':

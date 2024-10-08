@@ -49,8 +49,6 @@ async def main():
     logger.info(f'框架版本：{GlobalVal.iirosebot_version}，日志等级：{log_level}')
 
     await main_init()
-    from iirosebot.init.serve_init import serve_init
-    task = asyncio.create_task(serve_init())
 
     from iirosebot.ws_iirose.ws import connect_to_iirose_server
     from iirosebot.plugin_system.plugin_init import find_plugins_functions

@@ -16,4 +16,6 @@ class GlobalVal:
     close_status = False
     message_cache = {"private": {}, "group": {}}
     send_message_cache = {"private": {}, "group": {}}
+    self_info = {}
+    message_queue = {}
 

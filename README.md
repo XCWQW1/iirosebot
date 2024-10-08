@@ -70,7 +70,7 @@
         enabled: false  # 启用 反向ws
         event: ws://your_websocket_event.server  # 事件推送
         reconnect_interval: 3000  # 超时时间，毫秒
-        url: ws://your_websocket_universal.server  # 反向ws服务器地址，此地址可以连接的情况下event和url作废 
+        url: ws://your_websocket_universal.server  # 反向ws服务器地址，不需要可删除该行，该行存在的情况下 event和api 无效 
         verify: false  # 是否开启鉴权
       websocket_server:
         enabled: false  # 启用 WS服务器
@@ -149,7 +149,7 @@
         enabled: false  # 启用 反向ws
         event: ws://your_websocket_event.server  # 事件推送
         reconnect_interval: 3000  # 超时时间，毫秒
-        url: ws://your_websocket_universal.server  # 反向ws服务器地址，此地址可以连接的情况下event和url作废 
+        url: ws://your_websocket_universal.server  # 反向ws服务器地址，不需要可删除该行，该行存在的情况下 event和api 无效
         verify: false  # 是否开启鉴权
       websocket_server:
         enabled: false  # 启用 WS服务器

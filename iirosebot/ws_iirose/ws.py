@@ -29,9 +29,9 @@ async def connect_to_iirose_server():
     global bot_status
     logger.info('正在链接到蔷薇服务器')
     wss_host = 1
-    while True:
+    while not GlobalVal.close_status:
         try:
-            async with websockets.connect(f'ws://m{wss_host if wss_host else ""}.iirose.com:8777') as websocket:
+            async with websockets.connect(f'ws://m{wss_host if wss_host else ""}.iirose.com:8777', ping_timeout=300) as websocket:
                 GlobalVal.websocket = websocket
                 bot_status = Status.ONLINE
                 loop = asyncio.get_event_loop()

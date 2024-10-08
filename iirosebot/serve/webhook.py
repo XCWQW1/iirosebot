@@ -1,4 +1,3 @@
-import hmac
 import json
 import time
 import asyncio
@@ -12,11 +11,12 @@ from iirosebot.globals import GlobalVal
 from iirosebot.utools.serve import generate_signature
 from iirosebot.utools.serve.array_message import text2array
 from iirosebot.API.api_get_config import get_token, get_serve, get_bot_id, get_heartbeat
+from iirosebot.utools.websocket_utools import return_event_message
 
 wh_queue = asyncio.Queue()
 
 
-def send_data(data: json, post_type: str) -> None:
+async def send_data(data: json, post_type: str) -> None:
     send_data = {
         "time": int(time.time()),
         "self_id": uid2hex(get_bot_id()),
@@ -47,7 +47,7 @@ def send_data(data: json, post_type: str) -> None:
 async def start_webhook(url: str, timeout: int) -> None:
     logger.info('WEBHOOK 已启用')
 
-    send_data(
+    await send_data(
         {
             "meta_event_type": "lifecycle",
             "sub_type": "enable"
@@ -55,63 +55,18 @@ async def start_webhook(url: str, timeout: int) -> None:
         'meta_event'
     )
 
-    while True:
+    while not GlobalVal.close_status:
         item = await wh_queue.get()
-
-        try:
-            message_id = int(item[1].message_id)
-        except ValueError:
-            message_id = uid2hex(item[1].message_id)
-        except:
-            pass
-
-        if item[0] == "room_message":
-            send_data(
-                {
-                    "message_type": "group",
-                    "sub_type": "normal",
-                    "message_id": message_id,
-                    "group_id": uid2hex(GlobalVal.now_room_id),
-                    "user_id": uid2hex(item[1].user_id),
-                    "anonymous": None,
-                    "message": await text2array(item[1].message),
-                    "raw_message": str(item[1].message),
-                    "font": 456,
-                    "sender": {
-                        "user_id": uid2hex(item[1].user_id),
-                        "nickname": item[1].user_name,
-                        "sex": "unknown",
-                        "age": "18",
-                    },
-                },
-                'message'
-            )
-        elif item[0] == "private_message":
-            send_data(
-                {
-                    "message_type": "private",
-                    "sub_type": "friend",
-                    "message_id": message_id,
-                    "group_id": uid2hex(GlobalVal.now_room_id),
-                    "user_id": uid2hex(item[1].user_id),
-                    "message": await text2array(item[1].message),
-                    "raw_message": str(item[1].message),
-                    "font": 456,
-                    "sender": {
-                        "user_id": uid2hex(item[1].user_id),
-                        "nickname": item[1].user_name,
-                        "sex": "unknown",
-                        "age": "18",
-                    },
-                },
-                'message'
-            )
+        data = await return_event_message(item)
+        if data is None:
+            continue
+        await send_data(data, 'message')
 
 
 async def start_heartbeat():
     if get_heartbeat()['enabled']:
-        while True:
-            send_data(
+        while not GlobalVal.close_status:
+            await send_data(
                 {
                     "meta_event_type": "heartbeat",
                     "sub_type": "enable",

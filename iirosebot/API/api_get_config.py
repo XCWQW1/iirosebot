@@ -3,6 +3,7 @@ import re
 import yaml
 from loguru import logger
 
+from iirosebot.globals import GlobalVal
 from iirosebot.utools.generate_token import generate_token
 
 config_path = "config/config.yml"
@@ -25,11 +26,11 @@ def get_bot_id() -> str:
         with open(config_path, 'r', encoding='utf-8') as file:
             config = yaml.safe_load(file)
 
-        master_id = str(config["bot"]["uid"])
+        bot_id = GlobalVal.iirose_date['user_name'][str(config["bot"]["username"])]['id']
     except:
-        master_id = None
+        bot_id = None
 
-    return master_id
+    return bot_id
 
 
 def get_user_color() -> str:

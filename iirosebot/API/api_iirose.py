@@ -1,9 +1,12 @@
 """
 常用接口
 """
+import asyncio
 import io
 import json
 import html
+import time
+import uuid
 import random
 import traceback
 
@@ -33,6 +36,17 @@ class PlatformType(Enum):
     bilibili_live = 5
 
 
+async def message_wait_append(event_type):
+    message_uuid = str(uuid.uuid4())
+    GlobalVal.message_queue[str(event_type)] = {message_uuid: None}
+    while not GlobalVal.close_status:
+        if GlobalVal.message_queue[str(event_type)][message_uuid] is not None:
+            message = GlobalVal.message_queue[str(event_type)][message_uuid]
+            del GlobalVal.message_queue[str(event_type)][message_uuid]
+            break
+    return message
+
+
 class APIIirose:
     def __int__(self):
         pass
@@ -50,7 +64,7 @@ class APIIirose:
         msg_id = str(random.random())[2:14]
         await GlobalVal.websocket.send(json.dumps({"m": msg, "mc": str(color), "i": msg_id}))
         logger.info(f'[消息|房间|发送] {bot_name}：{msg} ({msg_id})')
-        GlobalVal.send_message_cache['group'][msg_id] = {"message": msg}
+        GlobalVal.send_message_cache['group'][msg_id] = {"message": msg, "user_id": GlobalVal.self_info.get('id', 'NaN'), 'timestamp': time.time(), 'message_id': msg_id}
         return msg_id
 
     @staticmethod
@@ -67,7 +81,7 @@ class APIIirose:
         msg_id = str(random.random())[2:14]
         await GlobalVal.websocket.send(json.dumps({"g": user_id, "m": msg, "mc": str(color), "i": msg_id}))
         logger.info(f'[消息|私聊|发送] {bot_name}：{msg} ({msg_id}) => {user_id}')
-        GlobalVal.send_message_cache['private'][msg_id] = {"message": msg, "user_id": user_id}
+        GlobalVal.send_message_cache['private'][msg_id] = {"message": msg, "user_id": GlobalVal.self_info.get('id', 'NaN'), 'timestamp': time.time(), 'message_id': msg_id}
         return msg_id
 
     @staticmethod
@@ -522,7 +536,7 @@ class APIIirose:
     @staticmethod
     async def get_playlist():
         await GlobalVal.websocket.send("%")
-        raise APIException("获取歌单失败，原因：超时")
+        return await message_wait_append('playlist')
 
     @staticmethod
     async def send_notice(message: str):
@@ -544,9 +558,9 @@ class APIIirose:
             await GlobalVal.websocket.send("_~!0")
 
     @staticmethod
-    async def room_anonymous(enable: bool):
+    async def room_anonymous(enable: bool, num: int = 0):
         if enable:
-            await GlobalVal.websocket.send('!h7["10"]')
+            await GlobalVal.websocket.send('!h7["1{}"]'.format(num))
         else:
             await GlobalVal.websocket.send('!h7["1"]')
 
@@ -572,4 +586,93 @@ class BaseStation:
                 user_list += i + ","
             logger.info(f'[基站|发送] 包名：{packageName}, 内容：{msg}，目标：{user_list}')
             await GlobalVal.websocket.send("/<{}>{}:{}".format(packageName, user_list[:-1], msg))
+
+
+class MediaControl:
+    """
+    切当前：!11
+
+    获取列表：&a
+    有：a1196.744>护花使者>@0李克勤>XCWQW1>s://p1.music.126.net/63FWrGpyTiXkH4Zne81qeg==/109951167893640977.jpg<196.744>护花使者>@0李克勤>XCWQW1>s://p1.music.126.net/63FWrGpyTiXkH4Zne81qeg==/109951167893640977.jpg
+
+    切单个：!12["0_196.744"]
+    切范围：!12["0_114.013-0_114.013"]
+    媒体排序：!14["1_196.744-0_114.013"]
+
+    无：a1
+
+    清空媒体：!13
+    快退：!15["<","1s"]
+    快进：!15[">","1s"]
+    进度条：!16["1s"]
+    """
+    async def cut(self):
+        await GlobalVal.websocket.send("!11")
+
+
+
+class RoomControl:
+    """
+    指定房间：前缀后加_房间uid
+    移出房间：!#["xcwqw1"]
+    发送通知：!!["1"]
+
+    限制发言&点播
+        白名单
+            查询：!hw["3"] > a2 & a2海马>$6581753255237>1721939284>测试>3<XCWQW1>$65cca96d3e968>1721939452>>3
+            清空：!hw["2"]
+            添加：!hw["4","xcwqw1","30m",""]
+            移除：!hw["1","0_65cca96d3e968"]
+        限制发言
+            查询：!h1["6"]
+            结果对照
+                .!0 所有人
+                .!4 白名单以上
+                .!1 普通成员及以上
+                .!2 带星标成员以以上
+                .!3 仅房主
+                .!5 仅白名单
+        限制点播
+            查询：!h2["6"]
+            结果对照
+                .@0 所有人
+                .@4 白名单以上
+                .@1 普通成员及以上
+                .@2 带星标成员以以上
+                .@3 仅房主
+                .@5 仅白名单
+        限制发言&点播
+            查询：!h0["6"]
+            结果对照
+                .#0 所有人
+                .#4 白名单以上
+                .#1 普通成员及以上
+                .#2 带星标成员以以上
+                .#3 仅房主
+                .#5 仅白名单
+
+    禁言
+       查询：!h3["3"] > a2 & a2海马>$6581753255237>1721939284>测试>3<XCWQW1>$65cca96d3e968>1721939452>>3
+       清空：!h3["2"]
+       移除：!h3["1","0_65cca96d3e968"]
+       禁言：!h3["41","xcwqw1","1h","test"]
+       禁点播：!h3["42","xcwqw1","30m",""]
+       禁言&禁点播：!h3["43","xcwqw1","30m",""]
+
+
+    黑名单：
+        查询：!h4["3"] > a2 & a2海马>$6581753255237>1721939284>测试>3<XCWQW1>$65cca96d3e968>1721939452>>3
+        清空：!h4["2"]
+        添加：!h4["4","xcwqw1","30m",""]
+        移除：!h4["1","0_6533df3d933bf"]
+
+    印象
+        查询：!h8["0"] > am8 & am81
+        限制：!h8["1-100"]
+
+    游客限制
+        查询：!h7["0"] > am7 & am71
+        限制：!h7["11"]
+
+    """
 

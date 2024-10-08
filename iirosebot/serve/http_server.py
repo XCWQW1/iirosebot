@@ -17,6 +17,14 @@ routes = web.RouteTableDef()
 API = APIIirose()
 api_token = get_token()
 onebot_v11_url = '/onebot/v11'
+onebot_v11_api_list = {}
+
+
+def onebot_v11_api():
+    def decorator(func):
+        onebot_v11_api_list[func.__name__] = func
+
+    return decorator
 
 
 def message_id_h2i(message_id):
@@ -38,12 +46,14 @@ def return_data(data: json, status: str, retcode: int, status_code: int) -> json
     }, status=status_code)
 
 
+@onebot_v11_api()
 @routes.route('*', f"{onebot_v11_url}/http")
 @routes.route('*', onebot_v11_url)
 async def root(request):
     return return_data({}, 'ok', 0, 200)
 
 
+@onebot_v11_api()
 @routes.route('*', f"{onebot_v11_url}/http/send_msg")
 @routes.route('*', f'{onebot_v11_url}/send_msg')
 async def send_msg(request):
@@ -79,7 +89,7 @@ async def send_msg(request):
         return return_data({"message_id": msg_id}, 'ok', 0, 200)
 
     elif message_type == "group":
-        msg_id = await API.send_msg_to_room(message, user_id)
+        msg_id = await API.send_msg_to_room(message)
         return return_data({"message_id": msg_id}, 'ok', 0, 200)
 
     else:
@@ -88,12 +98,13 @@ async def send_msg(request):
             return return_data({"message_id": msg_id}, 'ok', 0, 200)
 
         elif group_id is not None:
-            msg_id = await API.send_msg_to_room(message, user_id)
+            msg_id = await API.send_msg_to_room(message)
             return return_data({"message_id": msg_id}, 'ok', 0, 200)
 
     return return_data({}, 'failed', 400, 200)
 
 
+@onebot_v11_api()
 @routes.route('*', f"{onebot_v11_url}/http/send_private_msg")
 @routes.route('*', f'{onebot_v11_url}/send_private_msg')
 async def send_private_msg(request):
@@ -124,6 +135,7 @@ async def send_private_msg(request):
     return return_data({}, 'failed', 400, 200)
 
 
+@onebot_v11_api()
 @routes.route('*', f"{onebot_v11_url}/http/send_group_msg")
 @routes.route('*', f'{onebot_v11_url}/send_group_msg')
 async def send_group_msg(request):
@@ -147,13 +159,14 @@ async def send_group_msg(request):
     if message == "":
         return return_data({}, 'failed', 400, 200)
 
-    if message is not None and group_id is not None:
-        msg_id = await API.send_msg_to_room(message, group_id)
+    if message is not None:
+        msg_id = await API.send_msg_to_room(message)
         return return_data({"message_id": msg_id}, 'ok', 0, 200)
 
     return return_data({}, 'failed', 400, 200)
 
 
+@onebot_v11_api()
 @routes.route('*', f"{onebot_v11_url}/http/delete_msg")
 @routes.route('*', f'{onebot_v11_url}/delete_msg')
 async def delete_msg(request):
@@ -175,22 +188,53 @@ async def delete_msg(request):
     return return_data({}, 'ok', 0, 200)
 
 
+@onebot_v11_api()
 @routes.route('*', f"{onebot_v11_url}/http/get_msg")
 @routes.route('*', f'{onebot_v11_url}/get_msg')
 async def get_msg(request):
     if request.method == 'GET':
-        user_id = hex2uid(message_id_h2i(request.query.get('user_id', None)))
+        message_id = message_id_h2i(request.query.get('message_id', None))
 
     elif request.method == 'POST':
         data = await request.json()
-        user_id = hex2uid(message_id_h2i(data.get('user_id', None)))
+        message_id = message_id_h2i(data.get('message_id', None))
 
-    if user_id is None:
+    if message_id is None:
         return return_data({}, 'failed', 400, 200)
 
-    return return_data({}, 'ok', 0, 404)
+    message_id = str(message_id)
+    if message_id in GlobalVal.send_message_cache['private']:
+        message_info = GlobalVal.send_message_cache['private'][message_id]
+        message_info['type'] = 'private'
+    elif message_id in GlobalVal.send_message_cache['group']:
+        message_info = GlobalVal.send_message_cache['group'][message_id]
+        message_info['type'] = 'group'
+    elif message_id in GlobalVal.message_cache['private']:
+        message_info = GlobalVal.message_cache['private'][message_id]
+        message_info['type'] = 'private'
+    elif message_id in GlobalVal.message_cache['group']:
+        message_info = GlobalVal.message_cache['group'][message_id]
+        message_info['type'] = 'group'
+
+    if message_info is None:
+        return return_data({}, 'failed', 400, 200)
+
+    return return_data({
+        "time": int(message_info['timestamp']),
+        "message_type": message_info['type'],
+        "message_id": message_info['message_id'],
+        "real_id": message_info['message_id'],
+        "sender": {
+            "user_id": uid2hex(message_info['user_id']),
+            "nickname": GlobalVal.iirose_date['user'][message_info['user_id']]['name'],
+            "sex": "unknown",
+            "age": "18",
+        },
+        "message": message_info['message']
+    }, 'ok', 0, 404)
 
 
+@onebot_v11_api()
 @routes.route('*', f"{onebot_v11_url}/http/send_like")
 @routes.route('*', f'{onebot_v11_url}/send_like')
 async def send_like(request):
@@ -209,6 +253,7 @@ async def send_like(request):
     return return_data({}, 'ok', 0, 200)
 
 
+@onebot_v11_api()
 @routes.route('*', f"{onebot_v11_url}/http/set_group_kick")
 @routes.route('*', f'{onebot_v11_url}/set_group_kick')
 async def set_group_kick(request):
@@ -232,6 +277,7 @@ async def set_group_kick(request):
     return return_data({}, 'ok', 0, 200)
 
 
+@onebot_v11_api()
 @routes.route('*', f"{onebot_v11_url}/http/set_group_ban")
 @routes.route('*', f'{onebot_v11_url}/set_group_ban')
 async def set_group_ban(request):
@@ -255,12 +301,14 @@ async def set_group_ban(request):
     return return_data({}, 'ok', 0, 200)
 
 
+@onebot_v11_api()
 @routes.route('*', f"{onebot_v11_url}/http/set_group_anonymous_ban")
 @routes.route('*', f'{onebot_v11_url}/set_group_anonymous_ban')
 async def set_group_anonymous_ban(request):
     return return_data({}, 'ok', 0, 200)
 
 
+@onebot_v11_api()
 @routes.route('*', f"{onebot_v11_url}/http/set_group_whole_ban")
 @routes.route('*', f'{onebot_v11_url}/set_group_whole_ban')
 async def set_group_whole_ban(request):
@@ -276,12 +324,14 @@ async def set_group_whole_ban(request):
     return return_data({}, 'ok', 0, 200)
 
 
+@onebot_v11_api()
 @routes.route('*', f"{onebot_v11_url}/http/set_group_admin")
 @routes.route('*', f'{onebot_v11_url}/set_group_admin')
 async def set_group_admin(request):
     return return_data({}, 'ok', 0, 200)
 
 
+@onebot_v11_api()
 @routes.route('*', f"{onebot_v11_url}/http/set_group_anonymous")
 @routes.route('*', f'{onebot_v11_url}/set_group_anonymous')
 async def set_group_anonymous(request):
@@ -300,19 +350,22 @@ async def set_group_anonymous(request):
     return return_data({}, 'ok', 0, 200)
 
 
+@onebot_v11_api()
 @routes.route('*', f"{onebot_v11_url}/http/set_group_name")
 @routes.route('*', f'{onebot_v11_url}/set_group_name')
 async def set_group_name(request):
     return return_data({}, 'ok', 0, 200)
 
 
+@onebot_v11_api()
 @routes.route('*', f"{onebot_v11_url}/http/get_login_info")
 @routes.route('*', f'{onebot_v11_url}/get_login_info')
 async def get_login_info(request):
-    bot_name, _, _, bot_id = load_config()
-    return return_data({'user_id': uid2hex(bot_id), 'nickname': bot_name}, 'ok', 0, 200)
+    bot_name, _, _ = load_config()
+    return return_data({'user_id': uid2hex(GlobalVal.iirose_date['user_name'][bot_name]['id']), 'nickname': bot_name}, 'ok', 0, 200)
 
 
+@onebot_v11_api()
 @routes.route('*', f"{onebot_v11_url}/http/get_stranger_info")
 @routes.route('*', f'{onebot_v11_url}/get_stranger_info')
 async def get_stranger_info(request):
@@ -342,6 +395,7 @@ async def get_stranger_info(request):
         'ok', 0, 200)
 
 
+@onebot_v11_api()
 @routes.route('*', f"{onebot_v11_url}/http/get_friend_list")
 @routes.route('*', f'{onebot_v11_url}/get_friend_list')
 async def get_friend_list(request):
@@ -358,22 +412,29 @@ async def get_friend_list(request):
     return return_data({}, 'ok', 0, 200)
 
 
+@onebot_v11_api()
 @routes.route('*', f"{onebot_v11_url}/http/get_group_info")
 @routes.route('*', f'{onebot_v11_url}/get_group_info')
 async def get_group_info(request):
     if request.method == 'GET':
-        user_id = hex2uid(message_id_h2i(request.query.get('user_id', None)))
+        group_id = hex2uid(message_id_h2i(request.query.get('group_id', None)))
 
     elif request.method == 'POST':
         data = await request.json()
-        user_id = hex2uid(message_id_h2i(data.get('user_id', None)))
+        group_id = hex2uid(message_id_h2i(data.get('group_id', None)))
 
-    if user_id is None:
+    if group_id is None:
         return return_data({}, 'failed', 400, 200)
+    room_info = GlobalVal.iirose_date['room'][group_id]
+    return return_data({
+        "group_id": uid2hex(group_id),
+        "group_name": room_info['name'],
+        "member_count": 0,
+        "max_member_count": 0
+    }, 'ok', 0, 200)
 
-    return return_data({}, 'ok', 0, 200)
 
-
+@onebot_v11_api()
 @routes.route('*', f"{onebot_v11_url}/http/get_group_list")
 @routes.route('*', f'{onebot_v11_url}/get_group_list')
 async def get_group_list(request):
@@ -390,6 +451,7 @@ async def get_group_list(request):
     return return_data({}, 'ok', 0, 200)
 
 
+@onebot_v11_api()
 @routes.route('*', f"{onebot_v11_url}/http/get_group_member_info")
 @routes.route('*', f'{onebot_v11_url}/get_group_member_info')
 async def get_group_member_info(request):
@@ -432,6 +494,7 @@ async def get_group_member_info(request):
         'ok', 0, 200)
 
 
+@onebot_v11_api()
 @routes.route('*', f"{onebot_v11_url}/http/get_group_member_list")
 @routes.route('*', f'{onebot_v11_url}/get_group_member_list')
 async def get_group_member_list(request):
@@ -448,6 +511,7 @@ async def get_group_member_list(request):
     return return_data({}, 'ok', 0, 200)
 
 
+@onebot_v11_api()
 @routes.route('*', f"{onebot_v11_url}/http/can_send_image")
 @routes.route('*', f'{onebot_v11_url}/can_send_image')
 @routes.route('*', f"{onebot_v11_url}/http/can_send_record")
@@ -466,24 +530,28 @@ async def can_send(request):
     return return_data({}, 'ok', 0, 200)
 
 
+@onebot_v11_api()
 @routes.route('*', f"{onebot_v11_url}/http/get_status")
 @routes.route('*', f'{onebot_v11_url}/get_status')
 async def get_status(request):
     return return_data({"online": True, "good": True}, 'ok', 0, 200)
 
 
+@onebot_v11_api()
 @routes.route('*', f"{onebot_v11_url}/http/get_version_info")
 @routes.route('*', f'{onebot_v11_url}/get_version_info')
 async def get_version_info(request):
     return return_data({"app_name": "iirose-iirosebot", "app_version": GlobalVal.iirosebot_version[1:], "protocol_version": "v11"}, 'ok', 0, 200)
 
 
+@onebot_v11_api()
 @routes.route('*', f"{onebot_v11_url}/http/set_restart")
 @routes.route('*', f'{onebot_v11_url}/set_restart')
 async def set_restart(request):
     return return_data({}, 'ok', 0, 200)
 
 
+@onebot_v11_api()
 @routes.route('*', f"{onebot_v11_url}/http/clean_cache")
 @routes.route('*', f'{onebot_v11_url}/clean_cache')
 async def clean_cache(request):
@@ -550,7 +618,7 @@ async def start_http_api(host: str, port: int) -> None:
     task = asyncio.create_task(wait_for_close())
 
     try:
-        while True:
+        while not GlobalVal.close_status:
             await asyncio.sleep(1)
 
     except:

@@ -1,8 +1,8 @@
 """
 发送登陆包到蔷薇服务器
 """
-import asyncio
 import json
+import asyncio
 
 from loguru import logger
 from iirosebot.globals.globals import GlobalVal
@@ -58,6 +58,9 @@ async def login_to_server(websocket):
 async def init_plugin():
     global on_init
     if not on_init:
+        from iirosebot.init.serve_init import serve_init
+        task = asyncio.create_task(serve_init())
+
         logger.info('执行插件初始化')
         await plugin_transfer('on_init')
         on_init = True
