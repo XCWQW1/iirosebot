@@ -1,5 +1,7 @@
 import json
 
+from loguru import logger
+
 from iirosebot.globals import GlobalVal
 from iirosebot.serve.http_server import onebot_v11_api_list
 from iirosebot.utools import uid2hex
@@ -34,7 +36,12 @@ async def api_message(message, ws):
     message = json.loads(message)
     if message['action'] in onebot_v11_api_list:
         data = await onebot_v11_api_list[message['action']](QueryParams(message['params']))
-        data = json.loads(data.text)
+        try:
+            data = json.loads(data.text)
+        except:
+            logger.error(f"[onebot|v11|API] 调用 {message['action']} 产生错误 携带参数：{message['params']}")
+            return
+        logger.info(f"[onebot|v11|API] {message['action']} 被调用")
         if str(data['retcode'])[:1] == "4":
             data['retcode'] = int('1' + str(data['retcode']))
         await ws.send_json(return_data(data['data'], data['status'], data['retcode'], message['echo']))

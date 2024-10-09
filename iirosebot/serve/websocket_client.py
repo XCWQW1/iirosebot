@@ -87,6 +87,7 @@ async def create_ws(client_type, url):
 
         except Exception as e:
             logger.error(f"[WEBSOCKET CLIENT|{client_type}] ws连接错误: {e}")
+            logger.debug(f"[WEBSOCKET CLIENT|{client_type}] {traceback.format_exc()}")
 
         logger.info(f"[WEBSOCKET CLIENT|{client_type}] {reconnect_delay} 秒后重新尝试连接...")
         await asyncio.sleep(reconnect_delay)

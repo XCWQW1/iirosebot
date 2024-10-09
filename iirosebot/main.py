@@ -18,6 +18,7 @@ def shutdown():
     GlobalVal.close_status = True
 
     if get_serve()['webhook']['enabled']:
+        """ 有缘再修
         from iirosebot.serve.webhook import send_data
         send_data(
             {
@@ -26,7 +27,8 @@ def shutdown():
             },
             'meta_event'
         )
-        logger.info('WEBHOOK 已正常关闭')
+        """
+        logger.info('WEBHOOK 已关闭')
 
     # 释放掉调用插件函数的进程
     task_queue.put(('on_close', None, False))

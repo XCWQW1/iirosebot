@@ -132,10 +132,14 @@ async def array2text(array: list):
                 elif reply_id in GlobalVal.message_cache['group']:
                     message_info = GlobalVal.message_cache['group'][reply_id]
 
-                class Message:
-                    message = message_info['message']
-                    user_name = message_info['user_name']
-                    timestamp = message_info['timestamp']
+                try:
+                    class Message:
+                        message = message_info['message']
+                        user_name = message_info['user_name']
+                        timestamp = message_info['timestamp']
+                except:
+                    reply_id = None
+                    private_id = None
 
             else:
                 text += "[暂不支持:{}]".format(i['data']['type'])

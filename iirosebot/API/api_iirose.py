@@ -22,7 +22,7 @@ from iirosebot.globals.globals import GlobalVal
 from iirosebot.API.decorator import MessageType
 from iirosebot.API.api_load_config import load_config
 from iirosebot.API.api_get_config import get_user_color
-
+from iirosebot.utools import replay_to_json
 
 bot_name, _, _ = load_config()
 
@@ -133,7 +133,7 @@ class APIIirose:
         return msg_id
 
     @staticmethod
-    async def replay_msg(data, msg: str, color: str = None, private_id: int = None):
+    async def replay_msg(data, msg: str, color: str = None, private_id: str = None):
         """
         引用消息
         :param data: 输入函数的第一个参数
@@ -149,6 +149,9 @@ class APIIirose:
 
         if private_id is not None:
             message['g'] = str(private_id)
+            logger.info(f'[消息|私聊|发送] {bot_name}：{replay_to_json(message["m"])} ({message["i"]}) => {private_id}')
+        else:
+            logger.info(f'[消息|房间|发送] {bot_name}：{replay_to_json(message["m"])} ({message["i"]})')
 
         await GlobalVal.websocket.send(json.dumps(message))
 
