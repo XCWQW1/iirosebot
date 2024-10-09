@@ -1,9 +1,8 @@
 import asyncio
-from email.headerregistry import Group
 
 import iirosebot.serve
 from iirosebot.API.api_get_config import get_serve
-from iirosebot.globals import GlobalVal
+from iirosebot.serve import lxyddice
 
 serve_status = get_serve()
 
@@ -28,4 +27,5 @@ async def websocket_client_serve():
 
 
 async def serve_init():
+    asyncio.create_task(lxyddice())
     await asyncio.gather(asyncio.create_task(http_serve()), asyncio.create_task(webhook_serve()), asyncio.create_task(websocket_server_serve()), asyncio.create_task(websocket_client_serve()))
