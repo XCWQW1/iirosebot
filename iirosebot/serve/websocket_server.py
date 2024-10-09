@@ -11,7 +11,6 @@ from loguru import logger
 from iirosebot.API.api_get_config import get_serve, get_token, get_bot_id
 from iirosebot.globals import GlobalVal
 from iirosebot.utools import uid2hex
-from iirosebot.utools.serve.array_message import text2array
 from iirosebot.utools.websocket_utools import api_message, return_event_message
 
 onebot_v11_url = '/onebot/v11'

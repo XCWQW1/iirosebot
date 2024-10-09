@@ -6,7 +6,7 @@ from aiohttp import web
 from loguru import logger
 
 from iirosebot.globals import GlobalVal
-from iirosebot.utools import hex2uid, uid2hex
+from iirosebot.utools import hex2uid, uid2hex, message_id_h2i
 from iirosebot.API.api_iirose import APIIirose
 from iirosebot.API.api_load_config import load_config
 from iirosebot.API.api_get_config import get_token, get_serve
@@ -25,17 +25,6 @@ def onebot_v11_api():
         onebot_v11_api_list[func.__name__] = func
 
     return decorator
-
-
-def message_id_h2i(message_id):
-    if message_id is None:
-        return None
-    try:
-        message_id = int(message_id)
-    except ValueError:
-        message_id = hex2uid(message_id)
-
-    return int(message_id)
 
 
 def return_data(data: json, status: str, retcode: int, status_code: int) -> json:
@@ -76,13 +65,17 @@ async def send_msg(request):
         return web.json_response({"code": 405, 'error': "Method Not Allowed"}, status=405)
 
     if type(message) != str:
-        message = await array2text(message)
+        message, reply_id, private_id, Message = await array2text(message)
 
     if message == "":
         return return_data({}, 'failed', 400, 200)
 
     if message is None:
         return return_data({}, 'failed', 400, 200)
+
+    if reply_id is not None:
+        msg_id = await API.replay_msg(Message, message, private_id=private_id)
+        return msg_id
 
     if message_type == "private":
         msg_id = await API.send_msg_to_private(message, user_id)
@@ -123,12 +116,16 @@ async def send_private_msg(request):
         return return_data({}, 'failed', 400, 200)
 
     if type(message) != str:
-        message = await array2text(message)
+        message, reply_id, private_id, Message = await array2text(message)
 
     if message == "":
         return return_data({}, 'failed', 400, 200)
 
     if message is not None and user_id is not None:
+        if reply_id is not None:
+            msg_id = await API.replay_msg(Message, message, private_id=private_id)
+            return msg_id
+
         msg_id = await API.send_msg_to_private(message, user_id)
         return return_data({"message_id": msg_id}, 'ok', 0, 200)
 
@@ -154,12 +151,16 @@ async def send_group_msg(request):
         return return_data({}, 'failed', 400, 200)
 
     if type(message) != str:
-        message = await array2text(message)
+        message, reply_id, private_id, Message = await array2text(message)
 
     if message == "":
         return return_data({}, 'failed', 400, 200)
 
     if message is not None:
+        if reply_id is not None:
+            msg_id = await API.replay_msg(Message, message, private_id=private_id)
+            return msg_id
+
         msg_id = await API.send_msg_to_room(message)
         return return_data({"message_id": msg_id}, 'ok', 0, 200)
 

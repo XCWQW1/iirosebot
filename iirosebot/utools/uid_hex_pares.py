@@ -23,3 +23,13 @@ def hex2uid(user_hex: int):
     except:
         pass
     return uid
+
+def message_id_h2i(message_id):
+    if message_id is None:
+        return None
+    try:
+        message_id = int(message_id)
+    except ValueError:
+        message_id = hex2uid(message_id)
+
+    return int(message_id)

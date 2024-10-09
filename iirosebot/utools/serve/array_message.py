@@ -1,5 +1,10 @@
+import asyncio
+import json
 import re
 import base64
+from urllib.parse import parse_qs, urlparse
+
+import aiohttp
 import requests
 import traceback
 import iirosebot.API.api_iirose
@@ -7,7 +12,26 @@ import iirosebot.API.api_iirose
 from loguru import logger
 
 from iirosebot.globals import GlobalVal
-from iirosebot.utools import hex2uid, uid2hex
+from iirosebot.utools import hex2uid, uid2hex, message_id_h2i
+
+
+async def qq_pic_url_to_iirose_pic(url):
+    parsed_url = urlparse(url)
+    query_params = parse_qs(parsed_url.query)
+    dst_uin = query_params.get('dst_uin', None)
+    if dst_uin is None:
+        return url
+    else:
+        uid = hex2uid(int(dst_uin[0]))
+        try:
+            return GlobalVal.iirose_date['user'][uid]['pic']
+        except:
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5)) as session:
+                try:
+                    async with session.get(f"https://xc.null.red:8043/api/iirose/user/info?type=id&data={uid}") as response:
+                        return json.loads(await response.text())['pic']
+                except asyncio.TimeoutError:
+                    return "头像获取失败"
 
 
 async def file_pares(image_path):
@@ -19,7 +43,7 @@ async def file_pares(image_path):
 
     elif image_path.startswith('http://') or image_path.startswith('https://'):
         # URL
-        return "[{}#e]".format(image_path)
+        return "[{}#e]".format(await qq_pic_url_to_iirose_pic(image_path))
 
     elif image_path.startswith('base64://'):
         # Base64
@@ -31,6 +55,14 @@ async def file_pares(image_path):
 
 async def array2text(array: list):
     text = ""
+    reply_id = None
+    private_id = None
+
+    class Message:
+        message = None
+        user_name = None
+        timestamp = None
+
     try:
         for i in array:
             if i['type'] == "text":
@@ -41,7 +73,7 @@ async def array2text(array: list):
 
             elif i['type'] in ['image', 'record', 'video']:
                 if 'url' in i['data']:
-                    text += i['data']['url']
+                    text += await qq_pic_url_to_iirose_pic(i['data']['url'])
                 else:
                     text += await file_pares(i['data']['file'])
 
@@ -87,10 +119,23 @@ async def array2text(array: list):
                                                                             media_auther=i['data']['title'])
 
             elif i['type'] == "reply":
-                try:
-                    reply_id = str(int(i['data']['id']))
-                except:
-                    reply_id = str(hex2uid(i['data']['id']))
+                reply_id = str(message_id_h2i(i['data']['id']))
+
+                if reply_id in GlobalVal.send_message_cache['private']:
+                    message_info = GlobalVal.send_message_cache['private'][reply_id]
+                    private_id = message_info['user_id']
+                elif reply_id in GlobalVal.send_message_cache['group']:
+                    message_info = GlobalVal.send_message_cache['group'][reply_id]
+                elif reply_id in GlobalVal.message_cache['private']:
+                    message_info = GlobalVal.message_cache['private'][reply_id]
+                    private_id = message_info['user_id']
+                elif reply_id in GlobalVal.message_cache['group']:
+                    message_info = GlobalVal.message_cache['group'][reply_id]
+
+                class Message:
+                    message = message_info['message']
+                    user_name = message_info['user_name']
+                    timestamp = message_info['timestamp']
 
             else:
                 text += "[暂不支持:{}]".format(i['data']['type'])
@@ -98,7 +143,7 @@ async def array2text(array: list):
         logger.error("CQ消息解析出错\n" + traceback.format_exc())
         return "消息解析出错"
 
-    return text
+    return text, reply_id, private_id, Message
 
 
 async def text2array(text):
@@ -128,7 +173,10 @@ async def text2array(text):
                 content = match.group(5)
                 if symbol == '*':
                     if content in GlobalVal.iirose_date['user_name']:
-                        result.append({"type": "at", "data": {"qq": uid2hex(GlobalVal.iirose_date['user_name'][content]['id'])}})
+                        if "戳" in text and GlobalVal.self_info.get('name', None) in text:
+                            return [{"type": "poke", "data": {"type": "1", "id": "-1"}}]
+                        else:
+                            result.append({"type": "at", "data": {"qq": uid2hex(GlobalVal.iirose_date['user_name'][content]['id'])}})
                 elif symbol == '@':
                     result.append({"type": "contact", "data": {"type": "qq", "id": uid2hex(content)}})
                 elif symbol == '_':

@@ -114,7 +114,7 @@ async def pares_big(data):
 
                     user_name_data_json[user_data[2]] = user_data_json[user_data[8]]
 
-                    if len(i) == 21:
+                    if len(i) == 23:
                         GlobalVal.self_info = user_data_json[user_data[8]]
 
                     if user_data[4] in room_tree:
@@ -335,7 +335,7 @@ async def pares_big(data):
 
                     user_name_data_json[user_name] = user_data_json[user_id]
 
-                    if len(i) == 21:
+                    if len(i) == 23:
                         GlobalVal.self_info = user_data_json[user_id]
 
                     if user_room_id in room_tree:

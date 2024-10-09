@@ -133,18 +133,26 @@ class APIIirose:
         return msg_id
 
     @staticmethod
-    async def replay_msg(data, msg: str, color: str = None):
+    async def replay_msg(data, msg: str, color: str = None, private_id: int = None):
         """
         引用消息
         :param data: 输入函数的第一个参数
         :param msg: 消息内容
         :param color: 引用消息颜色
+        :param private_id: 私聊对方的uid
         :return:
         """
         if color is None:
             color = get_user_color()
 
-        await GlobalVal.websocket.send(json.dumps({"m": f"{data.message} (_hr) {data.user_name}_{data.timestamp} (hr_) {msg}", "mc": str(color), "i": str(random.random())[2:14]}))
+        message = {"m": f"{data.message} (_hr) {data.user_name}_{data.timestamp} (hr_) {msg}", "mc": str(color), "i": str(random.random())[2:14]}
+
+        if private_id is not None:
+            message['g'] = str(private_id)
+
+        await GlobalVal.websocket.send(json.dumps(message))
+
+        return message['i']
 
     @staticmethod
     async def move_room(room_id: str, password: str = None):
