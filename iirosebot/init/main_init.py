@@ -26,32 +26,34 @@ async def create_config_file(config_path):
             'introduction': ''
         },
         'serve': {
-            'token': generate_token(40),
-            'http_api': {
-                'enabled': False,
-                'verify': False,
-                'host': 'localhost',
-                'port': 9000,
-            },
-            'webhook': {
-                'enabled': False,
-                'url': 'http://your_webhook.server/',
-                'verify': False,
-                'time_out': 3000,
-            },
-            'websocket_server': {
-                'enabled': False,
-                'verify': False,
-                'host': 'localhost',
-                'port': 9002,
-            },
-            'websocket_reverse': {
-                'enabled': False,
-                'verify': False,
-                'url': 'ws://your_websocket_universal.server',
-                'api': 'ws://your_websocket_api.server',
-                'event': 'ws://your_websocket_event.server',
-                'reconnect_interval': 3000,
+            'onebot_v11': {
+                'token': generate_token(40),
+                'http_api': {
+                    'enabled': False,
+                    'verify': False,
+                    'host': 'localhost',
+                    'port': 9000,
+                },
+                'webhook': {
+                    'enabled': False,
+                    'url': 'http://your_webhook.server/',
+                    'verify': False,
+                    'time_out': 3000,
+                },
+                'websocket_server': {
+                    'enabled': False,
+                    'verify': False,
+                    'host': 'localhost',
+                    'port': 9002,
+                },
+                'websocket_reverse': {
+                    'enabled': False,
+                    'verify': False,
+                    'url': 'ws://your_websocket_universal.server',
+                    'api': 'ws://your_websocket_api.server',
+                    'event': 'ws://your_websocket_event.server',
+                    'reconnect_interval': 3000,
+                },
             },
         },
         'heartbeat': {

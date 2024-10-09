@@ -10,7 +10,7 @@ from requests import RequestException
 from iirosebot.globals import GlobalVal
 from iirosebot.utools.serve import generate_signature
 from iirosebot.utools.serve.array_message import text2array
-from iirosebot.API.api_get_config import get_token, get_serve, get_bot_id, get_heartbeat
+from iirosebot.API.api_get_config import get_token, get_onebot_v11_serve, get_bot_id, get_heartbeat
 from iirosebot.utools.websocket_utools import return_event_message
 
 wh_queue = asyncio.Queue()
@@ -30,18 +30,18 @@ async def send_data(data: json, post_type: str) -> None:
         "x-self-id": str(uid2hex(get_bot_id()))
     }
 
-    if get_serve()['webhook']['verify']:
+    if get_onebot_v11_serve()['webhook']['verify']:
         generated_hmac = generate_signature(get_token(), send_data)
 
         headers['x-signature'] = f"sha1={generated_hmac}"
 
     try:
-        logger.debug('[WEBHOOK] POST 请求 {} 请求头 {} 内容 {}'.format(get_serve()['webhook']['url'], headers, send_data))
-        data = requests.post(get_serve()['webhook']['url'], data=send_data, headers=headers, timeout=get_serve()['webhook']['time_out'])
+        logger.debug('[WEBHOOK] POST 请求 {} 请求头 {} 内容 {}'.format(get_onebot_v11_serve()['webhook']['url'], headers, send_data))
+        data = requests.post(get_onebot_v11_serve()['webhook']['url'], data=send_data, headers=headers, timeout=get_onebot_v11_serve()['webhook']['time_out'])
         if str(data.status_code)[:1] != '2' and str(data.status_code) != "404":
-            logger.error('[WEBHOOK] 访问 {} 出错，状态为 {} 返回 {}'.format(get_serve()['webhook']['url'], data.status_code, data.text))
+            logger.error('[WEBHOOK] 访问 {} 出错，状态为 {} 返回 {}'.format(get_onebot_v11_serve()['webhook']['url'], data.status_code, data.text))
     except RequestException as e:
-        logger.error('[WEBHOOK] 访问 {} 出错 {}'.format(get_serve()['webhook']['url'], e))
+        logger.error('[WEBHOOK] 访问 {} 出错 {}'.format(get_onebot_v11_serve()['webhook']['url'], e))
 
 
 async def start_webhook(url: str, timeout: int) -> None:

@@ -53,30 +53,31 @@
       level: INFO # 日志等级 
     other:
       master_id: ''  # 主人唯一标识
-    serve:
-      http_api:
-        enabled: false  # 启用 HTTP API
-        host: localhost  # 监听地址
-        port: 9000  # 监听端口
-        verify: false  # 是否开启鉴权
-      token: lsWPLFZwQSZbEWYi8ZFVFvj1W7xjCw0Lmm0x5dRC  # 鉴权密钥 secret/access token
-      webhook:
-        enabled: false  # 启用 WEBHOOK
-        time_out: 3000  # 超时时间，毫秒
-        url: http://your_webhook.server/  # WEBHOOK 服务器地址
-        verify: false  # 是否开启鉴权
-      websocket_reverse:
-        api: ws://your_websocket_api.server  # 接口接收#
-        enabled: false  # 启用 反向ws
-        event: ws://your_websocket_event.server  # 事件推送
-        reconnect_interval: 3000  # 超时时间，毫秒
-        url: ws://your_websocket_universal.server  # 反向ws服务器地址，不需要可删除该行，该行存在的情况下 event和api 无效 
-        verify: false  # 是否开启鉴权
-      websocket_server:
-        enabled: false  # 启用 WS服务器
-        host: localhost  # 监听地址
-        port: 9002  # 监听端口
-        verify: false  # 是否开启鉴权
+    serve:  # serve下面的内容用于框架外部调用，如果你不知道这是干什么的，请保持所有的enabled为false
+      onebot_v11:  # onebot v11 协议
+        http_api:
+          enabled: false  # 启用 HTTP API
+          host: localhost  # 监听地址
+          port: 9000  # 监听端口
+          verify: false  # 是否开启鉴权
+        token: lsWPLFZwQSZbEWYi8ZFVFvj1W7xjCw0Lmm0x5dRC  # 鉴权密钥 secret/access token
+        webhook:
+          enabled: false  # 启用 WEBHOOK
+          time_out: 3000  # 超时时间，毫秒
+          url: http://your_webhook.server/  # WEBHOOK 服务器地址
+          verify: false  # 是否开启鉴权
+        websocket_reverse:
+          api: ws://your_websocket_api.server  # 接口接收#
+          enabled: false  # 启用 反向ws
+          event: ws://your_websocket_event.server  # 事件推送
+          reconnect_interval: 3000  # 超时时间，毫秒
+          url: ws://your_websocket_universal.server  # 反向ws服务器地址，不需要可删除该行，该行存在的情况下 event和api 无效
+          verify: false  # 是否开启鉴权
+        websocket_server:
+          enabled: false  # 启用 WS服务器
+          host: localhost  # 监听地址
+          port: 9002  # 监听端口
+          verify: false  # 是否开启鉴权
   ```
   
 - ### 5, 编写\安装插件 （可选）
@@ -132,30 +133,31 @@
       level: INFO # 日志等级 
     other:
       master_id: ''  # 主人唯一标识
-    serve:
-      http_api:
-        enabled: false  # 启用 HTTP API
-        host: localhost  # 监听地址
-        port: 9000  # 监听端口
-        verify: false  # 是否开启鉴权
-      token: lsWPLFZwQSZbEWYi8ZFVFvj1W7xjCw0Lmm0x5dRC  # 鉴权密钥 secret/access token
-      webhook:
-        enabled: false  # 启用 WEBHOOK
-        time_out: 3000  # 超时时间，毫秒
-        url: http://your_webhook.server/  # WEBHOOK 服务器地址
-        verify: false  # 是否开启鉴权
-      websocket_reverse:
-        api: ws://your_websocket_api.server  # 接口接收#
-        enabled: false  # 启用 反向ws
-        event: ws://your_websocket_event.server  # 事件推送
-        reconnect_interval: 3000  # 超时时间，毫秒
-        url: ws://your_websocket_universal.server  # 反向ws服务器地址，不需要可删除该行，该行存在的情况下 event和api 无效
-        verify: false  # 是否开启鉴权
-      websocket_server:
-        enabled: false  # 启用 WS服务器
-        host: localhost  # 监听地址
-        port: 9002  # 监听端口
-        verify: false  # 是否开启鉴权
+    serve:  # serve下面的内容用于框架外部调用，如果你不知道这是干什么的，请保持所有的enabled为false
+      onebot_v11:  # onebot v11 协议
+        http_api:
+          enabled: false  # 启用 HTTP API
+          host: localhost  # 监听地址
+          port: 9000  # 监听端口
+          verify: false  # 是否开启鉴权
+        token: lsWPLFZwQSZbEWYi8ZFVFvj1W7xjCw0Lmm0x5dRC  # 鉴权密钥 secret/access token
+        webhook:
+          enabled: false  # 启用 WEBHOOK
+          time_out: 3000  # 超时时间，毫秒
+          url: http://your_webhook.server/  # WEBHOOK 服务器地址
+          verify: false  # 是否开启鉴权
+        websocket_reverse:
+          api: ws://your_websocket_api.server  # 接口接收#
+          enabled: false  # 启用 反向ws
+          event: ws://your_websocket_event.server  # 事件推送
+          reconnect_interval: 3000  # 超时时间，毫秒
+          url: ws://your_websocket_universal.server  # 反向ws服务器地址，不需要可删除该行，该行存在的情况下 event和api 无效
+          verify: false  # 是否开启鉴权
+        websocket_server:
+          enabled: false  # 启用 WS服务器
+          host: localhost  # 监听地址
+          port: 9002  # 监听端口
+          verify: false  # 是否开启鉴权
   ```
   
 - ### 6, 编写\安装插件 （可选）
@@ -190,7 +192,7 @@
       - [x] 发送房间消息
       - [x] 发送私聊消息
       - [x] 发送弹幕消息
-      - [x] 引用消息
+      - [x] 发送引用消息
       - [x] 上传文件
       - [x] 撤回消息
       - [x] 媒体播放
@@ -226,9 +228,19 @@
       - [x] 大包解析
   
   - #### 框架外部调用
-    - [ ] http api
-    - [ ] webhook
-    - [ ] 正向ws
-    - [ ] 反向ws
+    - [x] onebot v11 
+      - [x] http api
+      - [x] webhook
+      - [x] 正向websocket
+      - [x] 反向websocket
+    - [ ] onebot v12
+      - [ ] http api
+      - [ ] webhook
+      - [ ] 正向websocket
+      - [ ] 反向websocket
+    - [ ] Satori
+      - [ ] http api
+      - [ ] webhook
+      - [ ] websocket
 
 </details>

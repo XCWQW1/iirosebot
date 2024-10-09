@@ -8,7 +8,7 @@ import aiohttp
 from aiohttp import web
 from loguru import logger
 
-from iirosebot.API.api_get_config import get_serve, get_token, get_bot_id
+from iirosebot.API.api_get_config import get_onebot_v11_serve, get_token, get_bot_id
 from iirosebot.globals import GlobalVal
 from iirosebot.utools import uid2hex
 from iirosebot.utools.websocket_utools import api_message, return_event_message
@@ -117,7 +117,7 @@ async def verify_token(request, handler):
     elif request.method == "GET":
         logger.debug(f"[WEBSOCKET SERVER] {request.method} 请求 {request.path} 请求头 {dict(request.headers.items())} 内容 {dict(request.query.items())}")
 
-    if not get_serve()['websocket_server']['verify']:
+    if not get_onebot_v11_serve()['websocket_server']['verify']:
         return await handler(request)
 
     auth_header = request.query.get('access_token', None)

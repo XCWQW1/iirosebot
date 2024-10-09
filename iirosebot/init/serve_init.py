@@ -1,10 +1,10 @@
 import asyncio
 
 import iirosebot.serve
-from iirosebot.API.api_get_config import get_serve
+from iirosebot.API.api_get_config import get_onebot_v11_serve
 from iirosebot.serve import lxyddice
 
-serve_status = get_serve()
+serve_status = get_onebot_v11_serve()
 
 
 async def http_serve():

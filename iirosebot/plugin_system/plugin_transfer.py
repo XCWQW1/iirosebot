@@ -9,9 +9,9 @@ from iirosebot.plugin_system.plugin_init import plugin_manage_data
 from iirosebot.serve.webhook import wh_queue
 from iirosebot.serve.websocket_client import ws_client_queue
 from iirosebot.serve.websocket_server import ws_server_queue
-from iirosebot.API.api_get_config import get_serve
+from iirosebot.API.api_get_config import get_onebot_v11_serve
 
-serve_status = get_serve()
+serve_status = get_onebot_v11_serve()
 task_queue = queue.Queue()
 
 

@@ -9,7 +9,7 @@ from loguru import logger
 from iirosebot.log.main import log
 from iirosebot.init.main_init import main_init
 from iirosebot.globals.globals import GlobalVal
-from iirosebot.API.api_get_config import get_log_level, get_serve
+from iirosebot.API.api_get_config import get_log_level, get_onebot_v11_serve
 
 
 def shutdown():
@@ -17,7 +17,7 @@ def shutdown():
     logger.info('正在关闭框架')
     GlobalVal.close_status = True
 
-    if get_serve()['webhook']['enabled']:
+    if get_onebot_v11_serve()['webhook']['enabled']:
         """ 有缘再修
         from iirosebot.serve.webhook import send_data
         send_data(

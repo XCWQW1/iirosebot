@@ -7,7 +7,7 @@ from loguru import logger
 import aiohttp
 import asyncio
 
-from iirosebot.API.api_get_config import get_bot_id, get_serve, get_token
+from iirosebot.API.api_get_config import get_bot_id, get_onebot_v11_serve, get_token
 from iirosebot.globals import GlobalVal
 from iirosebot.utools import uid2hex
 from iirosebot.utools.websocket_utools import return_event_message, api_message
@@ -58,7 +58,7 @@ async def create_ws(client_type, url):
                 elif client_type == "共用":
                     headers["X-Client-Role"] = "Universal"
 
-                if get_serve()['websocket_reverse']['verify']:
+                if get_onebot_v11_serve()['websocket_reverse']['verify']:
                     headers['X-Authorization'] = f"Bearer {get_token()}"
 
                 async with session.ws_connect(url, headers=headers) as ws:

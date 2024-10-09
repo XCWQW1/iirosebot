@@ -9,7 +9,7 @@ from iirosebot.globals import GlobalVal
 from iirosebot.utools import hex2uid, uid2hex, message_id_h2i
 from iirosebot.API.api_iirose import APIIirose
 from iirosebot.API.api_load_config import load_config
-from iirosebot.API.api_get_config import get_token, get_serve
+from iirosebot.API.api_get_config import get_token, get_onebot_v11_serve
 from iirosebot.utools.serve.array_message import array2text
 
 
@@ -570,7 +570,7 @@ async def verify_token(request, handler):
     elif request.method == "GET":
         logger.debug(f"[HTTP API] {request.method} 请求 {request.path} 请求头 {dict(request.headers.items())} 内容 {dict(request.query.items())}")
 
-    if not get_serve()['http_api']['verify']:
+    if not get_onebot_v11_serve()['http_api']['verify']:
         return await handler(request)
 
     auth_header = request.query.get('access_token', None)

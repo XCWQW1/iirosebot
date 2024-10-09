@@ -79,13 +79,13 @@ def get_introduction() -> str:
     return introduction
 
 
-def get_serve() -> json:
+def get_onebot_v11_serve() -> json:
     try:
         with open(config_path, 'r', encoding='utf-8') as file:
             config = yaml.safe_load(file)
-        serve_status = config["serve"]
+        serve = config["serve"]['onebot_v11']
     except:
-        serve_status = {
+        serve = {
             'token': generate_token(40),
             'http_api': {
                 'enabled': False,
@@ -115,7 +115,7 @@ def get_serve() -> json:
             },
         }
 
-    return serve_status
+    return serve
 
 
 def get_heartbeat() -> json:
@@ -125,7 +125,7 @@ def get_heartbeat() -> json:
         heartbeat_status = config["heartbeat"]
     except:
         heartbeat_status = {
-            'enabled': True,
+            'enabled': False,
             'interval': 15000
         }
 
