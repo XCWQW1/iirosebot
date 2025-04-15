@@ -15,7 +15,7 @@ def parse_room_id(room_text: str) -> str:
     return re.findall(r"_([^_]+)_", room_text)[0].replace(" ", "")
 
 
-@on_command('移动到 ', [True, 4], command_type=[MessageType.room_chat, MessageType.private_chat])
+@on_command('移动到 ', True, command_type=[MessageType.room_chat, MessageType.private_chat])
 async def move_to(Message, text):
     if Message.user_id == get_master_id():
         try:

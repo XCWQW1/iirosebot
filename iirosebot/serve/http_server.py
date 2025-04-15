@@ -160,7 +160,6 @@ async def send_group_msg(request):
         if reply_id is not None:
             msg_id = await API.replay_msg(Message, message, private_id=private_id)
             return return_data({"message_id": msg_id}, 'ok', 0, 200)
-
         msg_id = await API.send_msg_to_room(message)
         return return_data({"message_id": msg_id}, 'ok', 0, 200)
 

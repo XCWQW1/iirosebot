@@ -9,7 +9,6 @@ from iirosebot.utools import uid2hex
 from requests import RequestException
 from iirosebot.globals import GlobalVal
 from iirosebot.utools.serve import generate_signature
-from iirosebot.utools.serve.array_message import text2array
 from iirosebot.API.api_get_config import get_token, get_onebot_v11_serve, get_bot_id, get_heartbeat
 from iirosebot.utools.websocket_utools import return_event_message
 

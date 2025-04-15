@@ -171,7 +171,8 @@ async def text2array(text):
                 result.append({"type": "text", "data": {"text": text[last_pos:match.start()]}})
 
             if match.group(1):  # URL 匹配
-                result.append({"type": "image", "data": {"file": match.group(1)[1:-1]}})
+                url = match.group(1)[1:-1]
+                result.append({"type": "image", "data": {"file": url, "url": url, "cache": 1, "proxy": 1, "timeout": 0}})
             else:  # RI码匹配
                 symbol = match.group(4)
                 content = match.group(5)

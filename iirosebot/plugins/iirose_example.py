@@ -49,6 +49,8 @@ async def room_message(Message):
     # 接受到房间消息会触发该函数，排除自身
     pass
 
+async def share_message(Data):
+    print(Data.price_share, Data.total_share, Data.total_money)
 
 """
 未完待续，其余事件请自行查看 ws_iirose>transfer_plugin.py 中的所有 plugin_transfer 函数

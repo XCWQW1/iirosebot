@@ -15,6 +15,7 @@ from iirosebot.API.decorator import function_records, MessageType
 from iirosebot.plugin_system.plugin_init import plugin_manage_data
 from iirosebot.plugin_system.plugin_transfer import plugin_transfer
 from iirosebot.utools import replay_to_json
+from iirosebot.main import shutdown
 
 API = APIIirose()
 gold = 0
@@ -51,8 +52,6 @@ async def put_message_wait(event_type, data):
 
 
 async def pares_big(data):
-    with open('big_r', 'w', encoding="utf-8") as f:
-        f.write(data)
     iirose_date = GlobalVal.iirose_date
     big_r = data.split("<")
     user_data_json = {}
@@ -163,9 +162,7 @@ async def pares_big(data):
                     room_color = room_data[2]
                     room_p_data = room_data[3]
 
-                    if int(room_p_data[:1]) == 0:
-                        room_properties = None
-                    elif int(room_p_data[:1]) == 1:
+                    if int(room_p_data[:1]) == 1:
                         room_properties = 'music_share'
                     elif int(room_p_data[:1]) == 2:
                         room_properties = 'video_share'
@@ -173,6 +170,8 @@ async def pares_big(data):
                         room_properties = 'music'
                     elif int(room_p_data[:1]) == 4:
                         room_properties = 'video'
+                    else:
+                        room_properties = None
 
                     if int(room_p_data[1:2]) == 1:
                         room_weather_environment_sound = True
@@ -380,7 +379,7 @@ async def process_message(data, websocket):
                 logger.error(f'登录失败：未知错误代码：{error_code}')
             logger.error("已关闭程序，请检查配置文件")
 
-            raise LoginException("CLOSE")
+            shutdown()
 
     if len(split_list) <= 1:
         for i in split_list:
@@ -549,7 +548,7 @@ async def process_message(data, websocket):
                     # 1.0整为崩盘
                     logger.info(f'[事件|股票] 股票崩盘')
                     await plugin_transfer('share_jump', Data)
-                else:
+                if Data.price_share != 1.0:
                     # 不崩盘的情况下都是非一位小数的float，有新数据就推送
                     gold = Data.price_share
                     logger.info(f'[事件|股票] 股价：{Data.price_share} 钞/股，总股: {Data.total_share}，总金: {Data.total_money}，持股: {Data.hold_share}，余额: {Data.hold_money}')

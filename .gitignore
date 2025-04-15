@@ -1,0 +1,11 @@
+build
+dist
+test
+iirosebot/config
+iirosebot/logs
+iirosebot/plugins
+iirosebot.egg-info
+testiirosebot
+
+__pycache__
+*.log
