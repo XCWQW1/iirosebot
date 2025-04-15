@@ -1,19 +1,21 @@
 import gzip
 import html
-import os
+import json
 import re
-import signal
-import sys
 import traceback
 
 from loguru import logger
 
+from iirosebot.API.api_get_config import get_bot_id
+from iirosebot.API.api_iirose import APIIirose
+from iirosebot.exception import LoginException
+from iirosebot.globals.globals import GlobalVal
 from iirosebot.API.api_load_config import load_config
 from iirosebot.API.decorator import function_records, MessageType
-from iirosebot.globals.globals import GlobalVal
-from iirosebot.plugin_system.plugin_transfer import plugin_transfer
 from iirosebot.plugin_system.plugin_init import plugin_manage_data
-from iirosebot.API.api_iirose import APIIirose
+from iirosebot.plugin_system.plugin_transfer import plugin_transfer
+from iirosebot.utools import replay_to_json
+from iirosebot.main import shutdown
 
 API = APIIirose()
 gold = 0
@@ -41,28 +43,12 @@ def check_start_symbols(text):
         return False, None
 
 
-def replay_to_json(text):
-    try:
-        text = text.split(" (hr_) ")
-        reply_list = []
-        num = 0
-        for i in text:
-            data = i.split(" (_hr) ")
-
-            if len(data) == 1:
-                reply_list[len(reply_list) - 1]['reply'] = data[0]
-                break
-
-            user_data = data[1].split("_")
-            if num == 0:
-                reply_list.append({"message": data[0], "user_name": user_data[0], "timestamp": user_data[1]})
-            else:
-                reply_list[len(reply_list) - 1]['reply'] = data[0]
-                reply_list.append({"message": data[0], "user_name": user_data[0], "timestamp": user_data[1]})
-            num += 1
-        return reply_list
-    except:
-        return []
+async def put_message_wait(event_type, data):
+    event_type = str(event_type)
+    if event_type in GlobalVal.message_queue:
+        if GlobalVal.message_queue[event_type] != {}:
+            for i in GlobalVal.message_queue[event_type]:
+                GlobalVal.message_queue[event_type][i] = data
 
 
 async def pares_big(data):
@@ -70,22 +56,28 @@ async def pares_big(data):
     big_r = data.split("<")
     user_data_json = {}
     room_data_json = {}
+
+    user_name_data_json = {}
+    room_name_data_json = {}
+
+    room_tree = {}
+
     for i in big_r:
         if i[:1] != "%":
+            i = html.unescape(i)
             match = re.search(r'\b([\da-f]{13}_[\da-f]{13})\b', i)
             if i[:8] == 'cartoon/':
                 user_data = i.split('>')
+                user_data[2] = html.unescape(user_data[2])
                 if user_data[8][:1] == 'X':
                     user_data = i.split(">")
-                    if len(user_data) != 14:
+                    if not len(i) == 16 and not len(i) == 21:
                         continue
+
                     user_data_json[user_data[8]] = {
                         "id": user_data[8],
                         "name": user_data[2],
-                        "pic": 'https://static.codemao.cn/rose/v0/images/icon/' + user_data[0] if user_data[0][
-                                                                                                  -4:] == '.png' else 'https://static.codemao.cn/rose/v0/images/icon/' +
-                                                                                                                      user_data[
-                                                                                                                          0] + '.jpg',
+                        "pic": 'https://static.codemao.cn/rose/v0/images/icon/' + user_data[0] if user_data[0][-4:] == '.png' else 'https://static.codemao.cn/rose/v0/images/icon/' + user_data[0] + '.jpg',
                         "sex": user_data[1],
                         "color": user_data[3],
                         "introduction": None,
@@ -95,9 +87,22 @@ async def pares_big(data):
                         "private_chat_background_image": None,
                         "status": user_data[11]
                     }
+
+                    user_name_data_json[user_data[2]] = user_data_json[user_data[8]]
+
+                    if len(i) == 23:
+                        GlobalVal.self_info = user_data_json[user_data[8]]
+
+                    if user_data[4] in room_tree:
+                        room_tree[user_data[4]][user_data[8]] = user_data_json[user_data[8]]
+                    else:
+                        room_tree[user_data[4]] = {}
+                        room_tree[user_data[4]][user_data[8]] = user_data_json[user_data[8]]
+
+
                     continue
                 else:
-                    if len(user_data) != 14:
+                    if not len(i) == 16 and not len(i) == 21:
                         continue
 
                     user_pic = user_data[0]
@@ -127,10 +132,7 @@ async def pares_big(data):
                     user_data_json[user_id] = {
                         "id": user_id,
                         "name": user_name,
-                        "pic": 'https://static.codemao.cn/rose/v0/images/icon/' + user_data[0] if user_data[0][
-                                                                                                  -4:] == '.png' else 'https://static.codemao.cn/rose/v0/images/icon/' +
-                                                                                                                      user_data[
-                                                                                                                          0] + '.jpg',
+                        "pic": 'https://static.codemao.cn/rose/v0/images/icon/' + user_data[0] if user_data[0][-4:] == '.png' else 'https://static.codemao.cn/rose/v0/images/icon/' + user_data[0] + '.jpg',
                         "sex": user_sex,
                         "color": user_color,
                         "introduction": user_introduction,
@@ -140,9 +142,19 @@ async def pares_big(data):
                         "private_chat_background_image": user_private_chat_background_image,
                         "status": user_status
                     }
+
+                    user_name_data_json[user_name] = user_data_json[user_id]
+
+                    if user_room_id in room_tree:
+                        room_tree[user_room_id][user_id] = user_data_json[user_id]
+                    else:
+                        room_tree[user_room_id] = {}
+                        room_tree[user_room_id][user_id] = user_data_json[user_id]
+
                     continue
             if match:
                 room_data = i.split(">")
+                room_data[1] = html.unescape(room_data[1])
                 if len(room_data) == 8:
                     room_id = room_data[0].split('_')[1]
                     room_name = room_data[1]
@@ -150,9 +162,7 @@ async def pares_big(data):
                     room_color = room_data[2]
                     room_p_data = room_data[3]
 
-                    if int(room_p_data[:1]) == 0:
-                        room_properties = None
-                    elif int(room_p_data[:1]) == 1:
+                    if int(room_p_data[:1]) == 1:
                         room_properties = 'music_share'
                     elif int(room_p_data[:1]) == 2:
                         room_properties = 'video_share'
@@ -160,6 +170,8 @@ async def pares_big(data):
                         room_properties = 'music'
                     elif int(room_p_data[:1]) == 4:
                         room_properties = 'video'
+                    else:
+                        room_properties = None
 
                     if int(room_p_data[1:2]) == 1:
                         room_weather_environment_sound = True
@@ -230,12 +242,34 @@ async def pares_big(data):
                         "weather_environment_sound": room_weather_environment_sound,
                         "role_play": room_role_play
                     }
+
+                    room_name_data_json[room_name] = {
+                        "id": room_id,
+                        "name": room_name,
+                        "type": room_type,
+                        "color": room_color,
+                        "pic": room_pic,
+                        "introduction": room_introduction,
+                        "created": room_created,
+                        "member": room_member,
+                        "photo_album": room_photo_album,
+                        "music_url": room_music_url,
+                        "music_name": room_music_name,
+                        "music_auther": room_music_auther,
+                        "properties": room_properties,
+                        "language": room_language,
+                        "weather_environment_sound": room_weather_environment_sound,
+                        "role_play": room_role_play
+                    }
                     continue
             else:
                 if i[:4] == 'http':
                     i = i.split('>')
-                    if len(i) != 14:
+
+                    if not len(i) == 16 and not len(i) == 21 and not len(i) == 23:
                         continue
+
+                    i[2] = html.unescape(i[2])
 
                     user_pic = i[0]
                     user_sex = i[1]
@@ -274,10 +308,30 @@ async def pares_big(data):
                         "private_chat_background_image": user_private_chat_background_image,
                         "status": user_status
                     }
+
+                    user_name_data_json[user_name] = user_data_json[user_id]
+
+                    if len(i) == 23:
+                        GlobalVal.self_info = user_data_json[user_id]
+
+                    if user_room_id in room_tree:
+                        room_tree[user_room_id][user_id] = user_data_json[user_id]
+                    else:
+                        room_tree[user_room_id] = {}
+                        room_tree[user_room_id][user_id] = user_data_json[user_id]
+
                     continue
 
-    GlobalVal.iirose_date['room'] = room_data_json
-    GlobalVal.iirose_date['user'] = user_data_json
+    GlobalVal.iirose_date['room_tree'] = {**room_tree, **GlobalVal.iirose_date['room_tree']}
+
+    GlobalVal.iirose_date['room'] = {**room_data_json, **GlobalVal.iirose_date['room']}
+    GlobalVal.iirose_date['user'] = {**user_data_json, **GlobalVal.iirose_date['user']}
+
+    GlobalVal.iirose_date['room_name'] = {**room_name_data_json, **GlobalVal.iirose_date['room_name']}
+    GlobalVal.iirose_date['user_name'] = {**user_name_data_json, **GlobalVal.iirose_date['user_name']}
+    # print(json.dumps(GlobalVal.iirose_date, ensure_ascii=False))
+
+    logger.info('基础数据已更新')
 
 
 async def process_message(data, websocket):
@@ -324,13 +378,8 @@ async def process_message(data, websocket):
             elif type(error_code) == int:
                 logger.error(f'登录失败：未知错误代码：{error_code}')
             logger.error("已关闭程序，请检查配置文件")
-            logger.info('框架已关闭')
-            pid = os.getpid()
-            if sys.platform == 'win32':
-                os.kill(pid, signal.CTRL_C_EVENT)
-            else:
-                os.kill(pid, signal.SIGKILL)
-            sys.exit(0)
+
+            shutdown()
 
     if len(split_list) <= 1:
         for i in split_list:
@@ -367,7 +416,11 @@ async def process_message(data, websocket):
             await plugin_transfer('date_update')
 
     for data in reversed(msg_list):
-        logger.debug(f"[原始|消息]{data}")
+        class Data:
+            message = html.unescape(data)
+        logger.debug(f"[原始|消息]{Data.message}")
+        await plugin_transfer('websocket_message', Data)
+
         if data == 'm':
             logger.info(f'[事件|移动] 切换房间')
             await websocket.close()
@@ -441,10 +494,16 @@ async def process_message(data, websocket):
             if data != "~":
                 for i in data[1:].split("<"):
                     song = i.split(">")
-                    song_info = {"song_time": song[0], "song_name": song[1], "user_name": song[2], "user_pic": song[4],
-                                 "song_pic": song[5]}
+                    song_info = {"song_time": song[0], "song_name": song[1], "user_name": song[2][6:], "user_pic": song[4],
+                                 "song_pic": song[5], "user_color": song[2][:6]}
                     song_data.append(song_info)
-            GlobalVal.message_data['playlist'] = song_data
+
+            await put_message_wait('playlist', song_data)
+
+            continue
+        elif data.startswith("_~"):
+            await put_message_wait('fuck_bro', data)
+
             continue
         else:
             if data[:2] == '-*':
@@ -461,9 +520,6 @@ async def process_message(data, websocket):
 
             elif data[:3] == 'm!m':
                 await GlobalVal.websocket.close()
-
-            #elif data.startswith("q"):
-            #    logger.info(f"")
 
             elif data == ',':
                 # 切媒体
@@ -492,7 +548,7 @@ async def process_message(data, websocket):
                     # 1.0整为崩盘
                     logger.info(f'[事件|股票] 股票崩盘')
                     await plugin_transfer('share_jump', Data)
-                else:
+                if Data.price_share != 1.0:
                     # 不崩盘的情况下都是非一位小数的float，有新数据就推送
                     gold = Data.price_share
                     logger.info(f'[事件|股票] 股价：{Data.price_share} 钞/股，总股: {Data.total_share}，总金: {Data.total_money}，持股: {Data.hold_share}，余额: {Data.hold_money}')
@@ -547,9 +603,10 @@ async def process_message(data, websocket):
                             Message.message = replay_data
                             Message.is_replay = True
 
-                        logger.info(
-                            f'[消息|房间] {Message.user_name}({Message.user_id}): {Message.message} ({Message.message_id})')
+                        logger.info(f'[消息|房间] {Message.user_name}({Message.user_id}): {Message.message} ({Message.message_id})')
                         await plugin_transfer('room_message', Message)
+
+                        GlobalVal.message_cache['group'][Message.message_id] = {k: v for k, v in vars(Message).items() if not k.startswith('__')}
 
                     elif len(msg) == 12:
                         # 事件类
@@ -579,7 +636,7 @@ async def process_message(data, websocket):
                                 type = MessageType.join_room
                                 timestamp = msg[0][1:]
                                 user_pic = msg[1]
-                                user_name = msg[2]
+                                user_name = html.unescape(msg[2])
                                 user_id = msg[8]
                                 color = msg[5]
                                 is_bot = True if msg[9][:2] == "4'" else False
@@ -597,7 +654,7 @@ async def process_message(data, websocket):
                                 type = MessageType.leave_room
                                 timestamp = msg[0][1:]
                                 user_pic = msg[1]
-                                user_name = msg[2]
+                                user_name = html.unescape(msg[2])
                                 user_id = msg[8]
                                 color = msg[5]
                                 is_bot = True if msg[9][:2] == "4'" else False
@@ -635,6 +692,7 @@ async def process_message(data, websocket):
                     logger.info(
                         f'[消息|私聊] {Message.user_name}({Message.user_id}): {Message.message} ({Message.message_id})')
                     await plugin_transfer('private_message', Message)
+                    GlobalVal.message_cache['private'][Message.message_id] = {k: v for k, v in vars(Message).items() if not k.startswith('__')}
 
             elif data[:1] == '=':
                 msg_type = data.count('=', 0, len(data))
@@ -659,8 +717,25 @@ async def process_message(data, websocket):
                 await plugin_transfer('danmu_message', Message)
 
             elif data[:3] == 'v0#':
-                # 撤回消息
+                # 房间撤回消息
                 msg = data.split("#")[1].split("_")
+                msg[1] = msg[1].split('"')
+
+                class Message:
+                    type = MessageType.revoke_message
+                    user_id = msg[0]
+                    message_id = msg[1][0]
+                    message_background_pic = msg[1][1] if msg[1][1] != "" else None
+
+                logger.debug(f'[分割|消息]{msg}')
+                logger.debug("[解析|消息]" + ", ".join(f"{k}={v}" for k, v in vars(Message).items() if not k.startswith('__')))
+
+                logger.info(f'[事件|撤回] 用户 {Message.user_id} 撤回了 {Message.message_id}')
+                await plugin_transfer('revoke_message', Message)
+                continue
+            elif data[:3] == 'v0*':
+                # 私聊撤回消息
+                msg = data.split("*")[1].split('"')[1].split('_')
 
                 class Message:
                     type = MessageType.revoke_message
@@ -670,8 +745,8 @@ async def process_message(data, websocket):
                 logger.debug(f'[分割|消息]{msg}')
                 logger.debug("[解析|消息]" + ", ".join(f"{k}={v}" for k, v in vars(Message).items() if not k.startswith('__')))
 
-                logger.info(f'[事件|撤回] 用户 {Message.user_id} 撤回了 {Message.message_id}')
-                await plugin_transfer('revoke_message', Message)
+                logger.info(f'[事件|私聊|撤回] 用户 {Message.user_id} 撤回了 {Message.message_id}')
+                await plugin_transfer('private_revoke_message', Message)
                 continue
 
             elif data[:2] == '&1':

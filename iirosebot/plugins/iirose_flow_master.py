@@ -15,7 +15,7 @@ def parse_room_id(room_text: str) -> str:
     return re.findall(r"_([^_]+)_", room_text)[0].replace(" ", "")
 
 
-@on_command('移动到 ', [True, 4], command_type=[MessageType.room_chat, MessageType.private_chat])
+@on_command('移动到 ', True, command_type=[MessageType.room_chat, MessageType.private_chat])
 async def move_to(Message, text):
     if Message.user_id == get_master_id():
         try:
@@ -60,7 +60,7 @@ async def wait_here(Message):
 @on_command('回到默认房间', False, command_type=[MessageType.room_chat, MessageType.private_chat])
 async def back_home(Message):
     if Message.user_id == get_master_id():
-        bot_name, room_id, bot_password = load_config()
+        bot_name, room_id, bot_password, _ = load_config()
         if GlobalVal.now_room_id != room_id:
             await API.send_msg(Message, f'{at_user(Message.user_name)}已执行')
             await API.move_room(room_id)

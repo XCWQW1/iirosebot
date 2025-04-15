@@ -1,6 +1,8 @@
-import inspect
 import os
+import inspect
+
 from enum import Enum
+from iirosebot.exception import DecoratorException
 
 function_records = {}
 
@@ -12,9 +14,9 @@ class MessageType(Enum):
     move_room = 3
     join_room = 4
     leave_room = 5
-    revoke_message = 5
-    media_video = 6
-    media_music = 7
+    revoke_message = 6
+    media_video = 7
+    media_music = 8
 
 
 def on_command(command: str, substring: list[bool, int] or bool, command_type: list = [MessageType.room_chat]):
@@ -26,16 +28,19 @@ def on_command(command: str, substring: list[bool, int] or bool, command_type: l
     :return:
     """
     def decorator(func):
-        if type(substring) is bool:
-            if substring:
-                substring_bool = substring
-                substring_num = len(command)
+        try:
+            if type(substring) is bool:
+                if substring:
+                    substring_bool = substring
+                    substring_num = len(command)
+                else:
+                    substring_bool = substring
+                    substring_num = 0
             else:
-                substring_bool = substring
-                substring_num = 0
-        else:
-            substring_bool = substring[0]
-            substring_num = substring[1]
+                substring_bool = substring[0]
+                substring_num = substring[1]
+        except:
+            raise DecoratorException('substring 参数不正确')
         plugins_file = os.getcwd() + '/plugins/'
         file_name = inspect.getfile(func).replace(plugins_file, '').replace('.py', '')
 
@@ -58,6 +63,6 @@ def on_command(command: str, substring: list[bool, int] or bool, command_type: l
         return func
 
     if callable(command or substring):
-        raise Exception('你没有在装饰器内写入参数')
+        raise DecoratorException('装饰器参数缺失')
 
     return decorator

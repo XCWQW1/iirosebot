@@ -1,56 +1,65 @@
-import asyncio
-import os
-import signal
+"""
+入口文件
+"""
 import sys
-import threading
+import signal
+import asyncio
 
-import requests
-
-from iirosebot.API.api_get_config import get_log_level
-from iirosebot.log.main import log
 from loguru import logger
-from iirosebot.globals.globals import GlobalVal
+from iirosebot.log.main import log
 from iirosebot.init.main_init import main_init
+from iirosebot.globals.globals import GlobalVal
+from iirosebot.API.api_get_config import get_log_level, get_onebot_v11_serve
 
 
-def signal_handler(sig, frame):
-    logger.info('框架已关闭')
-    pid = os.getpid()
-    if sys.platform == 'win32':
-        os.kill(pid, signal.CTRL_C_EVENT)
-    else:
-        os.kill(pid, signal.SIGKILL)
+def shutdown():
+    from iirosebot.plugin_system.plugin_transfer import task_queue, PluginTransferThread
+    logger.info('正在关闭框架')
+    GlobalVal.close_status = True
+
+    if get_onebot_v11_serve()['webhook']['enabled']:
+        """ 有缘再修
+        from iirosebot.serve.webhook import send_data
+        send_data(
+            {
+                "meta_event_type": "lifecycle",
+                "sub_type": "disable"
+            },
+            'meta_event'
+        )
+        """
+        logger.info('WEBHOOK 已关闭')
+
+    # 释放掉调用插件函数的进程
+    task_queue.put(('on_close', None, False))
+
+    PluginTransferThread(task_queue).stop()
+
     sys.exit(0)
 
 
-def main():
+def signal_handler(sig, frame):
+    shutdown()
+
+
+async def main():
     signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+
     log_level = get_log_level()
     log(log_level)
-    iirosebot_version = 'v1.7.0'
+    logger.info(f'框架版本：{GlobalVal.iirosebot_version}，日志等级：{log_level}')
 
-    def check_version():
-        try:
-            data = requests.get('https://api.github.com/repos/XCWQW1/iirosebot/releases', timeout=30).json()
-            if iirosebot_version == data[0]['tag_name']:
-                logger.info('框架版本已为最新')
-            else:
-                logger.warning(f"框架最新版本为：{data[0]['tag_name']}")
-        except:
-            logger.warning('获取版本信息失败！')
+    await main_init()
 
-    logger.info(f'框架版本：{iirosebot_version}，日志等级：{log_level}')
-    logger.info('正在检查更新中...')
-    threading.Thread(target=check_version()).start()
-    asyncio.run(main_init())
     from iirosebot.ws_iirose.ws import connect_to_iirose_server
     from iirosebot.plugin_system.plugin_init import find_plugins_functions
-    GlobalVal.plugin_list = asyncio.run(find_plugins_functions())
-    asyncio.run(connect_to_iirose_server())
+    GlobalVal.plugin_list = await find_plugins_functions()
+    await connect_to_iirose_server()
 
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
 
 
 '''
