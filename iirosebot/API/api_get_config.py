@@ -10,6 +10,9 @@ config_path = "config/config.yml"
 
 
 def get_master_id() -> str:
+    if os.environ.get("IB_OATHER_MASTER_ID", None):
+        return os.environ.get("IB_OATHER_MASTER_ID")
+
     try:
         with open(config_path, 'r', encoding='utf-8') as file:
             config = yaml.safe_load(file)
@@ -22,6 +25,9 @@ def get_master_id() -> str:
 
 
 def get_bot_id() -> str:
+    if os.environ.get("IB_BOT_USERNAME", None):
+        return os.environ.get("IB_BOT_USERNAME")
+
     try:
         with open(config_path, 'r', encoding='utf-8') as file:
             config = yaml.safe_load(file)
@@ -34,6 +40,9 @@ def get_bot_id() -> str:
 
 
 def get_user_color() -> str:
+    if os.environ.get("IB_BOT_COLOR", None):
+        return os.environ.get("IB_BOT_COLOR")
+
     with open(config_path, 'r', encoding='utf-8') as file:
         config = yaml.safe_load(file)
 
@@ -47,6 +56,9 @@ def get_user_color() -> str:
 
 
 def get_log_level() -> str:
+    if os.environ.get("IB_LOG_LEVEL", None):
+        return os.environ.get("IB_LOG_LEVEL")
+
     try:
         with open(config_path, 'r', encoding='utf-8') as file:
             config = yaml.safe_load(file)
@@ -58,6 +70,9 @@ def get_log_level() -> str:
 
 
 def get_log_color() -> bool:
+    if os.environ.get("IB_LOG_COLOR", None):
+        return os.environ.get("IB_LOG_COLOR")
+
     try:
         with open(config_path, 'r', encoding='utf-8') as file:
             config = yaml.safe_load(file)
@@ -67,8 +82,9 @@ def get_log_color() -> bool:
 
     return color_status
 
-
 def get_introduction() -> str:
+    if os.environ.get("IB_BOT_INTRODUCTION", None):
+        return os.environ.get("IB_BOT_INTRODUCTION")
     try:
         with open(config_path, 'r', encoding='utf-8') as file:
             config = yaml.safe_load(file)
@@ -133,6 +149,9 @@ def get_heartbeat() -> json:
 
 
 def get_token() -> str:
+    if os.environ.get("IB_SERVE_TOKEN", None):
+        return os.environ.get("IB_SERVE_TOKEN")
+
     try:
         with open(config_path, 'r', encoding='utf-8') as file:
             config = yaml.safe_load(file)

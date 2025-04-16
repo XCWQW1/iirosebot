@@ -51,7 +51,7 @@ async def login_to_server(websocket):
         login_json['rp'] = room_config[room_id]
 
     await websocket.send('*' + json.dumps(login_json))
-    logger.info('已发送登陆信息')
+    logger.info('登陆中...')
     await asyncio.sleep(2)
 
 

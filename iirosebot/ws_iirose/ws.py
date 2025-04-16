@@ -1,3 +1,4 @@
+import os
 import asyncio
 import time
 import traceback
@@ -18,19 +19,16 @@ class Status(Enum):
 
 
 bot_status = Status.OFFLINE
-re_loop = False
 
 
 async def connect_to_iirose_server():
     global bot_status
-    global re_loop
     logger.info('正在连接')
     wss_host = [0, 1, 2, None, 8]
     host_index = 0
     while True:
         try:
-            async with websockets.connect(f'ws://m{wss_host[host_index] if wss_host[host_index] else ""}.iirose.com:8777') as websocket:
-                re_loop = False
+            async with websockets.connect(os.environ.get("IB_WS_PROXY") if os.environ.get("IB_WS_PROXY", None) else f'ws://m{wss_host[host_index] if wss_host[host_index] else ""}.iirose.com:8777') as websocket:
                 GlobalVal.websocket = websocket
                 bot_status = Status.ONLINE
                 loop = asyncio.get_event_loop()
