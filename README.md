@@ -18,6 +18,8 @@
 
 ### 开始使用：
 
+> 机器人密码可填密码的md5版本，也可以填原文。
+
 <details>
 <summary>从包管理运行：</summary>
 
@@ -95,17 +97,16 @@
 </details>
 
 <details>
-<summary>从源码运行：</summary>
+<summary>从源码运行 (测试版)：</summary>
 
 - ### 1, 克隆本项目
   ```
   git clone https://github.com/XCWQW1/iirosebot.git
   ```
 
-
 - ### 2, 安装所需库
 
-  进入克隆后的目录下的iirosebot目录执行```pip install -r requirements.txt``` 
+  进入克隆后的项目执行`./setup.sh`，将会自动构建项目并安装所需依赖
 
 - ### 3, 创建或使用已有的iirose账号
   
@@ -117,7 +118,7 @@
   请先执行```python main.py```初始化后再进行操作
   
 - ### 4, 配置
-  打开 config>config.yml 文件
+  打开 iirosebot/config/config.yml 文件
   ```yaml
     bot:
       color: ffffff # 机器人消息颜色
@@ -167,7 +168,7 @@
 - ### 7, 启动
   >第一次运行会停止1次要求重启，用于初始化配置文件等
   
-  执行 `python main.py`
+  在`iirosebot/iirosebot`或其他目录下执行 `iirosebot`
 
 - ### 8, 调试
   >可以私聊机器人发送 `.插件` 获取插件管理菜单，提示无权请检查配置文件中的主人标识是否正确
