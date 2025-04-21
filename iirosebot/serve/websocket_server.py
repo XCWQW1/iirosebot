@@ -156,7 +156,7 @@ async def start_websocket_server(host: str, port: int) -> None:
         await site.start()
         logger.info('[WEBSOCKET SERVER] 监听 http://{}:{} 中'.format(host, port))
     except:
-        logger.error('[WEBSOCKET SERVER] 启动时出错: {}'.format(traceback.format_exc()))
+        logger.error('[WEBSOCKET SERVER] 启动时出错: {}'.format(traceback.print_exc()))
         return
 
     async def close_websocket():

@@ -63,7 +63,13 @@ async def send_msg(request):
 
     else:
         return web.json_response({"code": 405, 'error': "Method Not Allowed"}, status=405)
+   
+    try:
+        message = json.loads(message)
+    except:
+        pass
 
+    reply_id = None
     if type(message) != str:
         message, reply_id, private_id, Message = await array2text(message)
 
@@ -115,6 +121,12 @@ async def send_private_msg(request):
     else:
         return return_data({}, 'failed', 400, 200)
 
+    try:
+        message = json.loads(message)
+    except:
+        pass
+        
+    reply_id = None 
     if type(message) != str:
         message, reply_id, private_id, Message = await array2text(message)
 
@@ -150,6 +162,12 @@ async def send_group_msg(request):
     else:
         return return_data({}, 'failed', 400, 200)
 
+    try:
+        message = json.loads(message)
+    except:
+        pass
+
+    reply_id = None 
     if type(message) != str:
         message, reply_id, private_id, Message = await array2text(message)
 
@@ -201,7 +219,8 @@ async def get_msg(request):
 
     if message_id is None:
         return return_data({}, 'failed', 400, 200)
-
+    
+    message_info = None
     message_id = str(message_id)
     if message_id in GlobalVal.send_message_cache['private']:
         message_info = GlobalVal.send_message_cache['private'][message_id]
@@ -565,7 +584,11 @@ async def clean_cache(request):
 async def verify_token(request, handler):
     logger.info(f"[HTTP API] {request.remote} {request.method} {request.path}")
     if request.method == "POST":
-        logger.debug(f"[HTTP API] {request.method} 请求 {request.path} 请求头 {dict(request.headers.items())} 内容 {await request.json()}")
+        try:
+            body = await request.json()
+        except Exception as e:
+            body = None
+        logger.debug(f"[HTTP API] {request.method} 请求 {request.path} 请求头 {dict(request.headers.items())} {'内容 ' + str(body) if body else ''}")
     elif request.method == "GET":
         logger.debug(f"[HTTP API] {request.method} 请求 {request.path} 请求头 {dict(request.headers.items())} 内容 {dict(request.query.items())}")
 

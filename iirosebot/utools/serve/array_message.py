@@ -43,7 +43,11 @@ async def file_pares(image_path):
 
     elif image_path.startswith('http://') or image_path.startswith('https://'):
         # URL
-        return "[{}#e]".format(await qq_pic_url_to_iirose_pic(image_path))
+        img = await qq_pic_url_to_iirose_pic(image_path)
+        if img == image_path:
+            img = image_path
+
+        return "[{}#e]".format(img)
 
     elif image_path.startswith('base64://'):
         # Base64
@@ -153,6 +157,71 @@ async def array2text(array: list):
 async def text2array(text):
     try:
         if type(text) == list:
+            return [
+                {
+                    "type": "reply",
+                    "data": {
+                        "id": str(text[-1]["timestamp"])
+                    }
+                },
+                {
+                    "type": "text",
+                    "data": {
+                        "text": str(text[-1]["reply"]),
+                    }
+                }]
+
+        result = []
+        last_pos = 0
+
+        combined_pattern = f"(\[(http[^\[\]]+)\])|( \[([@*_])([^\[\]@*_]+)[@*_]\] )"
+
+        for match in re.finditer(combined_pattern, text):
+            # 文本匹配
+            if last_pos < match.start():
+                result.append({"type": "text", "data": {"text": text[last_pos:match.start()]}})
+
+            if match.group(1):  # URL 匹配
+                url = match.group(1)[1:-1]
+                result.append({"type": "image", "data": {"file": url, "url": url, "cache": 1, "proxy": 1, "timeout": 0}})
+            else:  # RI码匹配
+                try:
+                    symbol = match.group(4)
+                    content = match.group(5)
+                    if symbol == '*':
+                        if content in GlobalVal.iirose_date['user_name']:
+                            if "戳" in text and GlobalVal.self_info.get('name', None) in text:
+                                return [{"type": "poke", "data": {"type": "1", "id": "-1"}}]
+                            else:
+                                result.append({"type": "at", "data": {"qq": uid2hex(GlobalVal.iirose_date['user_name'][content]['id'])}})
+                    elif symbol == '@':
+                        result.append({"type": "contact", "data": {"type": "qq", "id": uid2hex(content)}})
+                    elif symbol == '_':
+                        result.append({"type": "contact", "data": {"type": "qq", "group": uid2hex(content)}})
+                except:
+                    pass
+
+            # 更新起始位置
+            last_pos = match.end()
+
+        # 添加最后一个匹配项之后的文本
+        if last_pos < len(text):
+            result.append({"type": "text", "data": {"text": text[last_pos:]}})
+
+        return result
+    except:
+        logger.error(f'IB转CQ出错：{traceback.format_exc()}')
+        return [{
+            "type": "text",
+            "data": {
+                "text": "消息解析出错",
+            }
+        }]
+
+
+async def text2cq(text):
+    try:
+        if type(text) == list:
             return [{
                 "type": "text",
                 "data": {
@@ -174,18 +243,21 @@ async def text2array(text):
                 url = match.group(1)[1:-1]
                 result.append({"type": "image", "data": {"file": url, "url": url, "cache": 1, "proxy": 1, "timeout": 0}})
             else:  # RI码匹配
-                symbol = match.group(4)
-                content = match.group(5)
-                if symbol == '*':
-                    if content in GlobalVal.iirose_date['user_name']:
-                        if "戳" in text and GlobalVal.self_info.get('name', None) in text:
-                            return [{"type": "poke", "data": {"type": "1", "id": "-1"}}]
-                        else:
-                            result.append({"type": "at", "data": {"qq": uid2hex(GlobalVal.iirose_date['user_name'][content]['id'])}})
-                elif symbol == '@':
-                    result.append({"type": "contact", "data": {"type": "qq", "id": uid2hex(content)}})
-                elif symbol == '_':
-                    result.append({"type": "contact", "data": {"type": "qq", "group": uid2hex(content)}})
+                try:
+                    symbol = match.group(4)
+                    content = match.group(5)
+                    if symbol == '*':
+                        if content in GlobalVal.iirose_date['user_name']:
+                            if "戳" in text and GlobalVal.self_info.get('name', None) in text:
+                                return [{"type": "poke", "data": {"type": "1", "id": "-1"}}]
+                            else:
+                                result.append({"type": "at", "data": {"qq": uid2hex(GlobalVal.iirose_date['user_name'][content]['id'])}})
+                    elif symbol == '@':
+                        result.append({"type": "contact", "data": {"type": "qq", "id": uid2hex(content)}})
+                    elif symbol == '_':
+                        result.append({"type": "contact", "data": {"type": "qq", "group": uid2hex(content)}})
+                except:
+                    pass
 
             # 更新起始位置
             last_pos = match.end()
@@ -196,7 +268,7 @@ async def text2array(text):
 
         return result
     except:
-        logger.error(f'RI转CQ出错：{traceback.format_exc()}')
+        logger.error(f'IB转CQ出错：{traceback.format_exc()}')
         return [{
             "type": "text",
             "data": {
