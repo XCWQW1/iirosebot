@@ -71,7 +71,7 @@ async def pares_big(data):
                 user_data[2] = html.unescape(user_data[2])
                 if user_data[8][:1] == 'X':
                     user_data = i.split(">")
-                    if not len(i) == 16 and not len(i) == 21:
+                    if not len(user_data) == 16 and not len(user_data) == 21:
                         continue
 
                     user_data_json[user_data[8]] = {
@@ -102,7 +102,7 @@ async def pares_big(data):
 
                     continue
                 else:
-                    if not len(i) == 16 and not len(i) == 21:
+                    if not len(user_data) == 16 and not len(user_data) == 21:
                         continue
 
                     user_pic = user_data[0]
@@ -544,15 +544,14 @@ async def process_message(data, websocket):
                 logger.debug(f'[分割|消息]{msg}')
                 logger.debug("[解析|消息]" + ", ".join(f"{k}={v}" for k, v in vars(Data).items() if not k.startswith('__')))
 
-                if Data.price_share == 1.0:
+                if str(Data.price_share) == "1.0":
                     # 1.0整为崩盘
                     logger.info(f'[事件|股票] 股票崩盘')
                     await plugin_transfer('share_jump', Data)
-                if Data.price_share != 1.0:
-                    # 不崩盘的情况下都是非一位小数的float，有新数据就推送
-                    gold = Data.price_share
-                    logger.info(f'[事件|股票] 股价：{Data.price_share} 钞/股，总股: {Data.total_share}，总金: {Data.total_money}，持股: {Data.hold_share}，余额: {Data.hold_money}')
-                    await plugin_transfer('share_message', Data)
+                # 不崩盘的情况下都是非一位小数的float，有新数据就推送
+                gold = Data.price_share
+                logger.info(f'[事件|股票] 股价：{Data.price_share} 钞/股，总股: {Data.total_share}，总金: {Data.total_money}，持股: {Data.hold_share}，余额: {Data.hold_money}')
+                await plugin_transfer('share_message', Data)
                 continue
 
             elif data[:1] == '"':
@@ -602,6 +601,7 @@ async def process_message(data, websocket):
                         if replay_data:
                             Message.message = replay_data
                             Message.is_replay = True
+                            GlobalVal.replay_message_cache['group'][Message.message_id] = {k: v for k, v in vars(Message).items() if not k.startswith('__')}
 
                         logger.info(f'[消息|房间] {Message.user_name}({Message.user_id}): {Message.message} ({Message.message_id})')
                         await plugin_transfer('room_message', Message)
